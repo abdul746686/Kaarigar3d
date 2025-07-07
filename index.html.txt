@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kaarigar3D - Orbit Controls</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background-color: #e0e0e0; }
+    canvas { display: block; }
+    #ui {
+      position: absolute; top: 10px; left: 10px;
+      background: rgba(0,0,0,0.6); padding: 10px;
+      border-radius: 8px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .btn {
+      background: #333; color: white; border: none;
+      padding: 10px; border-radius: 50%; font-size: 18px;
+      width: 40px; height: 40px; cursor: pointer;
+    }
+    .btn:hover { background-color: #555; }
+    .tooltip {
+      visibility: hidden; position: absolute;
+      left: 50px; top: 50%; transform: translateY(-50%);
+      background-color: #333; color: #fff;
+      padding: 5px 10px; border-radius: 4px;
+      white-space: nowrap;
+    }
+    .btn:active .tooltip { visibility: visible; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <button class="btn" onclick="rotateCube()">🔄<span class="tooltip">Rotate</span></button>
+    <button class="btn" onclick="moveCube()">📦<span class="tooltip">Move</span></button>
+    <button class="btn" onclick="scaleCube()">🔍<span class="tooltip">Scale</span></button>
+  </div>
+  <canvas id="scene"></canvas>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.148.0/examples/js/controls/OrbitControls.min.js"></script>
+  <script>
+    const canvas = document.getElementById("scene");
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0xe0e0e0);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.set(30, 30, 30);
+    camera.lookAt(0, 0, 0);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.1;
+    controls.enableZoom = true;
+
+    const axesHelper = new THREE.AxesHelper(50);
+    scene.add(axesHelper);
+
+    const gridHelper = new THREE.GridHelper(100, 100);
+    scene.add(gridHelper);
+
+    const light = new THREE.AmbientLight(0xffffff, 1);
+    scene.add(light);
+
+    const box = new THREE.Mesh(
+      new THREE.BoxGeometry(5, 5, 5),
+      new THREE.MeshStandardMaterial({ color: 0xff5533 })
+    );
+    scene.add(box);
+
+    function rotateCube() { box.rotation.y += 0.1; }
+    function moveCube() { box.position.x += 2; }
+    function scaleCube() { box.scale.multiplyScalar(1.1); }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
