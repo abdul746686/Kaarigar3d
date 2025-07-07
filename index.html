@@ -4,20 +4,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kaarigar3D - Axis & Background</title>
+  <title>Kaarigar3D - Icon Buttons</title>
   <style>
     html, body {
       margin: 0;
       height: 100%;
       overflow: hidden;
       background-color: #e0e0e0;
+      font-family: sans-serif;
     }
     canvas {
       display: block;
     }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 8px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn {
+      background-color: #333;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      font-size: 18px;
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      position: relative;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #555;
+    }
+    .tooltip {
+      visibility: hidden;
+      width: max-content;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 4px;
+      padding: 5px 10px;
+      position: absolute;
+      left: 50px;
+      top: 50%;
+      transform: translateY(-50%);
+      white-space: nowrap;
+      z-index: 99;
+    }
+    .btn:active .tooltip {
+      visibility: visible;
+    }
   </style>
 </head>
 <body>
+  <div id="ui">
+    <button class="btn" onclick="rotateCube()">
+      🔄
+      <span class="tooltip">Rotate</span>
+    </button>
+    <button class="btn" onclick="moveCube()">
+      📦
+      <span class="tooltip">Move</span>
+    </button>
+    <button class="btn" onclick="scaleCube()">
+      🔍
+      <span class="tooltip">Scale</span>
+    </button>
+  </div>
   <canvas id="scene"></canvas>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/three.min.js"></script>
   <script>
@@ -51,6 +112,18 @@
       new THREE.MeshStandardMaterial({ color: 0xff5533 })
     );
     scene.add(box);
+
+    function rotateCube() {
+      box.rotation.y += 0.1;
+    }
+
+    function moveCube() {
+      box.position.x += 0.2;
+    }
+
+    function scaleCube() {
+      box.scale.multiplyScalar(1.1);
+    }
 
     function animate() {
       requestAnimationFrame(animate);
