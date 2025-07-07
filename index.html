@@ -1,150 +1,95 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Kaarigar3D</title>
   <style>
-    body, html {
+    body {
       margin: 0;
-      padding: 0;
       overflow: hidden;
+      font-family: Arial;
+      background: #e0e0e0;
+    }
+    #toolbar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+    .tool-btn {
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 8px;
+      border: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
     }
     canvas {
       display: block;
     }
-    #topbar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: #222;
-      color: #fff;
-      font-family: sans-serif;
-      display: flex;
-      align-items: center;
-      padding: 5px 10px;
-      z-index: 10;
-    }
-    #logo {
-      width: 30px;
-      height: 30px;
-      background: #00ff99;
-      margin-right: 10px;
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-    }
-    #tools {
-      position: absolute;
-      left: 10px;
-      top: 50px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      z-index: 5;
-    }
-    button {
-      padding: 6px 10px;
-      font-size: 14px;
-      cursor: pointer;
-      border: none;
-      background-color: #eee;
-      border-radius: 5px;
-    }
   </style>
 </head>
 <body>
-  <div id="topbar">
-    <div id="logo">K3D</div>
-    <div>Kaarigar3D - 3D Furniture Designer</div>
+  <div id="toolbar">
+    <button class="tool-btn" id="rectangleBtn" title="Rectangle">▭</button>
+    <button class="tool-btn" id="pushPullBtn" title="Push Pull">⬛</button>
   </div>
-  <div id="tools">
-    <button id="addBox">Rectangle</button>
-    <button id="pushPull">Push Pull</button>
-    <button id="orbit">Orbit View</button>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/examples/js/controls/OrbitControls.js"></script>
+
+  <canvas id="canvas"></canvas>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/three.min.js"></script>
   <script>
-    let scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0);let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(5, 5, 5);
+    const scene = new THREE.Scene();
 
-let renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.set(3, 3, 5);
+    camera.lookAt(0, 0, 0);
 
-let controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
+    const renderer = new THREE.WebGLRenderer({canvas: document.getElementById("canvas")});
+    renderer.setSize(window.innerWidth, window.innerHeight);
 
-// Axes
-const axesHelper = new THREE.AxesHelper(5);
-scene.add(axesHelper);
+    // Grid & Axes
+    const grid = new THREE.GridHelper(10, 10);
+    scene.add(grid);
 
-// Grid
-const gridHelper = new THREE.GridHelper(20, 20);
-scene.add(gridHelper);
+    const axes = new THREE.AxesHelper(5);
+    scene.add(axes);
 
-// Lights
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(5, 10, 7.5);
-scene.add(light);
+    // Light
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 10, 7);
+    scene.add(light);
 
-// Tools
-let selectedMesh = null;
+    const ambient = new THREE.AmbientLight(0x404040);
+    scene.add(ambient);
 
-document.getElementById('addBox').onclick = () => {
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshStandardMaterial({ color: 0x0077ff });
-  const box = new THREE.Mesh(geometry, material);
-  box.position.y = 0.5;
-  scene.add(box);
-};
+    // Rectangle Button Action
+    document.getElementById("rectangleBtn").addEventListener("click", () => {
+      const geometry = new THREE.BoxGeometry(1, 0.1, 1);
+      const material = new THREE.MeshStandardMaterial({color: 0x0077ff});
+      const cube = new THREE.Mesh(geometry, material);
+      cube.position.set(0, 0.05, 0);
+      scene.add(cube);
+    });
 
-document.getElementById('pushPull').onclick = () => {
-  if (selectedMesh) {
-    selectedMesh.scale.y += 0.1;
-  }
-};
+    // Render Loop
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
 
-document.getElementById('orbit').onclick = () => {
-  controls.reset();
-};
-
-// Selection
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-window.addEventListener('click', (event) => {
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(scene.children);
-
-  if (intersects.length > 0) {
-    selectedMesh = intersects[0].object;
-  }
-});
-
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
-}
-animate();
-
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
   </script>
 </body>
 </html>
