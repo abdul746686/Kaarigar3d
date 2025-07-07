@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kaarigar3D - Icon Buttons</title>
+  <title>Kaarigar3D - Axis Visible</title>
   <style>
     html, body {
       margin: 0;
@@ -66,18 +66,9 @@
 </head>
 <body>
   <div id="ui">
-    <button class="btn" onclick="rotateCube()">
-      🔄
-      <span class="tooltip">Rotate</span>
-    </button>
-    <button class="btn" onclick="moveCube()">
-      📦
-      <span class="tooltip">Move</span>
-    </button>
-    <button class="btn" onclick="scaleCube()">
-      🔍
-      <span class="tooltip">Scale</span>
-    </button>
+    <button class="btn" onclick="rotateCube()">🔄<span class="tooltip">Rotate</span></button>
+    <button class="btn" onclick="moveCube()">📦<span class="tooltip">Move</span></button>
+    <button class="btn" onclick="scaleCube()">🔍<span class="tooltip">Scale</span></button>
   </div>
   <canvas id="scene"></canvas>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/three.min.js"></script>
@@ -89,26 +80,21 @@
 
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
-    camera.position.set(5, 5, 5);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(30, 30, 30);
     camera.lookAt(0, 0, 0);
 
-    const axesHelper = new THREE.AxesHelper(5);
+    const axesHelper = new THREE.AxesHelper(50);
     scene.add(axesHelper);
 
-    const gridHelper = new THREE.GridHelper(20, 20);
+    const gridHelper = new THREE.GridHelper(100, 100);
     scene.add(gridHelper);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
     const box = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1),
+      new THREE.BoxGeometry(5, 5, 5),
       new THREE.MeshStandardMaterial({ color: 0xff5533 })
     );
     scene.add(box);
@@ -118,7 +104,7 @@
     }
 
     function moveCube() {
-      box.position.x += 0.2;
+      box.position.x += 2;
     }
 
     function scaleCube() {
