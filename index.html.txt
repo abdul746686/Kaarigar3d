@@ -1,90 +1,150 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kaarigar3D - Orbit Controls</title>
+  <title>Kaarigar3D</title>
   <style>
-    html, body { margin: 0; height: 100%; overflow: hidden; background-color: #e0e0e0; }
-    canvas { display: block; }
-    #ui {
-      position: absolute; top: 10px; left: 10px;
-      background: rgba(0,0,0,0.6); padding: 10px;
-      border-radius: 8px; display: flex; flex-direction: column; gap: 10px;
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
     }
-    .btn {
-      background: #333; color: white; border: none;
-      padding: 10px; border-radius: 50%; font-size: 18px;
-      width: 40px; height: 40px; cursor: pointer;
+    canvas {
+      display: block;
     }
-    .btn:hover { background-color: #555; }
-    .tooltip {
-      visibility: hidden; position: absolute;
-      left: 50px; top: 50%; transform: translateY(-50%);
-      background-color: #333; color: #fff;
-      padding: 5px 10px; border-radius: 4px;
-      white-space: nowrap;
+    #topbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #222;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      align-items: center;
+      padding: 5px 10px;
+      z-index: 10;
     }
-    .btn:active .tooltip { visibility: visible; }
+    #logo {
+      width: 30px;
+      height: 30px;
+      background: #00ff99;
+      margin-right: 10px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    #tools {
+      position: absolute;
+      left: 10px;
+      top: 50px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 5;
+    }
+    button {
+      padding: 6px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      background-color: #eee;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
-  <div id="ui">
-    <button class="btn" onclick="rotateCube()">🔄<span class="tooltip">Rotate</span></button>
-    <button class="btn" onclick="moveCube()">📦<span class="tooltip">Move</span></button>
-    <button class="btn" onclick="scaleCube()">🔍<span class="tooltip">Scale</span></button>
+  <div id="topbar">
+    <div id="logo">K3D</div>
+    <div>Kaarigar3D - 3D Furniture Designer</div>
   </div>
-  <canvas id="scene"></canvas>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.148.0/examples/js/controls/OrbitControls.min.js"></script>
+  <div id="tools">
+    <button id="addBox">Rectangle</button>
+    <button id="pushPull">Push Pull</button>
+    <button id="orbit">Orbit View</button>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/examples/js/controls/OrbitControls.js"></script>
   <script>
-    const canvas = document.getElementById("scene");
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0xe0e0e0);
+    let scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf0f0f0);let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(5, 5, 5);
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    camera.position.set(30, 30, 30);
-    camera.lookAt(0, 0, 0);
+let renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.1;
-    controls.enableZoom = true;
+let controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
 
-    const axesHelper = new THREE.AxesHelper(50);
-    scene.add(axesHelper);
+// Axes
+const axesHelper = new THREE.AxesHelper(5);
+scene.add(axesHelper);
 
-    const gridHelper = new THREE.GridHelper(100, 100);
-    scene.add(gridHelper);
+// Grid
+const gridHelper = new THREE.GridHelper(20, 20);
+scene.add(gridHelper);
 
-    const light = new THREE.AmbientLight(0xffffff, 1);
-    scene.add(light);
+// Lights
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(5, 10, 7.5);
+scene.add(light);
 
-    const box = new THREE.Mesh(
-      new THREE.BoxGeometry(5, 5, 5),
-      new THREE.MeshStandardMaterial({ color: 0xff5533 })
-    );
-    scene.add(box);
+// Tools
+let selectedMesh = null;
 
-    function rotateCube() { box.rotation.y += 0.1; }
-    function moveCube() { box.position.x += 2; }
-    function scaleCube() { box.scale.multiplyScalar(1.1); }
+document.getElementById('addBox').onclick = () => {
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
+  const material = new THREE.MeshStandardMaterial({ color: 0x0077ff });
+  const box = new THREE.Mesh(geometry, material);
+  box.position.y = 0.5;
+  scene.add(box);
+};
 
-    function animate() {
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    animate();
+document.getElementById('pushPull').onclick = () => {
+  if (selectedMesh) {
+    selectedMesh.scale.y += 0.1;
+  }
+};
 
-    window.addEventListener("resize", () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+document.getElementById('orbit').onclick = () => {
+  controls.reset();
+};
+
+// Selection
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+window.addEventListener('click', (event) => {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(scene.children);
+
+  if (intersects.length > 0) {
+    selectedMesh = intersects[0].object;
+  }
+});
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
   </script>
 </body>
 </html>
