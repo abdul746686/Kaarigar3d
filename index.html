@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kaarigar 3D - v0.1</title>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: sans-serif; }
+    #ui {
+      position: absolute; top: 10px; left: 10px; z-index: 10;
+      background: rgba(255,255,255,0.9); padding: 10px; border-radius: 8px;
+    }
+    button { margin:5px; padding:5px 10px; font-size:14px; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <button onclick="addCube()">Add Cube</button>
+    <button onclick="rotateCube()">Rotate</button>
+    <button onclick="scaleCube()">Scale</button>
+    <button onclick="moveCube()">Move</button>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    let cube;
+
+    function addCube() {
+      const geometry = new THREE.BoxGeometry();
+      const material = new THREE.MeshNormalMaterial();
+      cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+      cube.position.set(0, 0, 0);
+    }
+
+    function rotateCube() {
+      if (cube) cube.rotation.y += 0.1;
+    }
+
+    function scaleCube() {
+      if (cube) cube.scale.set(1.5, 1.5, 1.5);
+    }
+
+    function moveCube() {
+      if (cube) cube.position.x += 0.5;
+    }
+
+    camera.position.z = 5;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
