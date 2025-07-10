@@ -1,23 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Resizable 3D Cube</title>
+    <title>साधारण 3D क्यूब</title>
     <style>
         body { margin: 0; overflow: hidden; }
-        #controls { position: absolute; top: 10px; left: 10px; background: white; padding: 10px; }
+        #size-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
-    <div id="controls">
-        <button onclick="resizeCube(0.1)">+ बड़ा करें</button>
-        <button onclick="resizeCube(-0.1)">- छोटा करें</button>
+    <!-- साइज कंट्रोल बटन -->
+    <div id="size-controls">
+        <button onclick="changeSize(0.2)">बड़ा (+)</button>
+        <button onclick="changeSize(-0.2)">छोटा (-)</button>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // 1. सीन सेटअप
+        // 1. बेसिक सेटअप
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
@@ -28,26 +37,15 @@
         scene.add(cube);
         camera.position.z = 5;
 
-        // 3. साइज़ बदलने का फंक्शन
-        function resizeCube(change) {
-            cube.scale.x += change;
-            cube.scale.y += change;
-            cube.scale.z += change;
+        // 3. साइज बदलने का फंक्शन
+        function changeSize(amount) {
+            cube.scale.x += amount;
+            cube.scale.y += amount;
+            cube.scale.z += amount;
         }
 
-        // 4. रेंडर लूप (बिना घुमाए)
-        function render() {
-            renderer.render(scene, camera);
-        }
-        render();
-
-        // 5. विंडो रीसाइज
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth/window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            render();
-        });
+        // 4. स्थिर रेंडर (बिना एनिमेशन)
+        renderer.render(scene, camera);
     </script>
 </body>
 </html>
