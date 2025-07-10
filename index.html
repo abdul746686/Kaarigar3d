@@ -1,45 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>3D Brick Cube</title>
-    <style>
-        body { 
-            margin: 0;
-            background: white;
-            overflow: hidden;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redwood - 3D Furniture Designing</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        // Scene setup
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        // Create brick-colored cube (RGB: 178, 34, 34)
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0xB22222 });
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
-
-        // Position cube on "ground" (lower part of screen)
-        cube.position.y = -0.5;
-        camera.position.z = 3;
-
-        // Static render (no animation)
-        renderer.render(scene, camera);
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.render(scene, camera);
-        });
-    </script>
+    <header>
+        <h1>Redwood</h1>
+        <nav>
+            <ul>
+                <li><a href="                  
+                <li><a href="#">Furniture</a></li>
+                <li><a href="                 
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="design-area">
+            <!-- 3D design area will go here -->
+            <canvas id="design-canvas" width="800" height="600"></canvas>
+        </section>
+        <section id="furniture-library">
+            <!-- Furniture library will go here -->
+            <ul>
+                <li><img src="chair.png" alt="Chair"></li>
+                <li><img src="table.png" alt="Table"></li>
+                <li><img src="bed.png" alt="Bed"></li>
+            </ul>
+        </section>
+    </main>
+    <script src="script.js"></script>
 </body>
-</html>
+                </html>
+                    
