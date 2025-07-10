@@ -1,50 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>साधारण 3D क्यूब</title>
+    <title>ईंट के रंग का 3D क्यूब</title>
     <style>
-        body { margin: 0; overflow: hidden; }
-        #size-controls {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
+        body { 
+            margin: 0; 
+            background: white; /* सफेद बैकग्राउंड */
+        }
+        canvas { 
+            display: block; 
         }
     </style>
 </head>
 <body>
-    <!-- साइज कंट्रोल बटन -->
-    <div id="size-controls">
-        <button onclick="changeSize(0.2)">बड़ा (+)</button>
-        <button onclick="changeSize(-0.2)">छोटा (-)</button>
-    </div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // 1. बेसिक सेटअप
+        // 1. सीन सेटअप
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // 2. लाल क्यूब जोड़ें (बिना घूमे)
+        // 2. ईंट के रंग का क्यूब (Brick Color: #B22222)
         const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const material = new THREE.MeshBasicMaterial({ color: 0xB22222 });
         const cube = new THREE.Mesh(geometry, material);
         scene.add(cube);
+
+        // 3. क्यूब को ज़मीन पर रखें (Y-पोजीशन -1)
+        cube.position.y = -1;
         camera.position.z = 5;
 
-        // 3. साइज बदलने का फंक्शन
-        function changeSize(amount) {
-            cube.scale.x += amount;
-            cube.scale.y += amount;
-            cube.scale.z += amount;
-        }
-
-        // 4. स्थिर रेंडर (बिना एनिमेशन)
+        // 4. स्थिर रेंडर (बिना घूमे)
         renderer.render(scene, camera);
     </script>
 </body>
