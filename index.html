@@ -1,43 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>3D Cube (Local Test)</title>
-    <style> body { margin: 0; } canvas { display: block; } </style>
+    <title>3D Cube with Real Drag</title>
+    <style> body { margin: 0; overflow: hidden; } </style>
 </head>
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // 1. Setup scene
+        // 1. बेसिक सेटअप
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // 2. Add cube
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        // 2. क्यूब जोड़ें
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
         const cube = new THREE.Mesh(geometry, material);
         scene.add(cube);
         camera.position.z = 5;
 
-        // 3. Drag functionality (mouse only)
+        // 3. ड्रैग फंक्शन (ठीक से काम करेगा)
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
         let isDragging = false;
-        window.addEventListener('mousedown', () => { isDragging = true; });
-        window.addEventListener('mouseup', () => { isDragging = false; });
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            cube.position.x = (e.clientX / window.innerWidth) * 2 - 1;
-            cube.position.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+        // माउस पोजीशन अपडेट
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+            
+            if(isDragging) {
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObject(cube);
+                if(intersects.length > 0) {
+                    cube.position.copy(intersects[0].point);
+                }
+            }
+        }
+
+        // माउस इवेंट्स
+        window.addEventListener('mousedown', () => {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(cube);
+            if(intersects.length > 0) isDragging = true;
         });
 
-        // 4. Animation loop
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        window.addEventListener('mousemove', onMouseMove);
+
+        // 4. एनिमेशन लूप
         function animate() {
             requestAnimationFrame(animate);
-            if (!isDragging) cube.rotation.x += 0.01;
+            if(!isDragging) cube.rotation.y += 0.01;
             renderer.render(scene, camera);
         }
         animate();
+
+        // 5. विंडो रीसाइज
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
