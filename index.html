@@ -1,110 +1,37 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kaarigar3D - Your Creations</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f8f8f8;
-      color: #333;
-    }
-    .topbar {
-      background-color: #ffffff;
-      padding: 10px 20px;
-      font-size: 1.2rem;
-      font-weight: bold;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .projects-section {
-      padding: 20px;
-    }
-    .section-title {
-      font-size: 1.4rem;
-      margin-bottom: 10px;
-    }
-    .project-card {
-      background: white;
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 15px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .project-card img {
-      width: 100px;
-      height: 60px;
-      border-radius: 8px;
-      object-fit: cover;
-    }
-    .project-info {
-      flex-grow: 1;
-      padding-left: 10px;
-    }
-    .project-name {
-      font-weight: 600;
-    }
-    .project-date {
-      font-size: 0.9rem;
-      color: #777;
-    }
-    .fab {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 14px 20px;
-      border-radius: 30px;
-      font-size: 1rem;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-    }
-  </style>
+    <title>आपका 3D एडिटर</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #f0f0f0; }
+        canvas { display: block; }
+    </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="logo">Kaarigar3D</div>
-    <div>☰</div>
-  </div>
-  <div class="projects-section">
-    <div class="section-title">Your Creations</div><div class="project-card">
-  <img src="https://via.placeholder.com/100x60.png?text=Project" alt="Preview">
-  <div class="project-info">
-    <div class="project-name">Final 1</div>
-    <div class="project-date">Today</div>
-  </div>
-</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // 1. बेसिक 3D सीन सेटअप
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-<div class="project-card">
-  <img src="https://via.placeholder.com/100x60.png?text=Project" alt="Preview">
-  <div class="project-info">
-    <div class="project-name">Copy of Final 2</div>
-    <div class="project-date">10 Jul 2025</div>
-  </div>
-</div>
+        // 2. क्यूब जोड़ें
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+        camera.position.z = 5;
 
-<div class="project-card">
-  <img src="https://via.placeholder.com/100x60.png?text=Project" alt="Preview">
-  <div class="project-info">
-    <div class="project-name">Copy of Copy...</div>
-    <div class="project-date">08 Jul 2025</div>
-  </div>
-</div>
-
-  </div><button class="fab">New Project</button>
-
+        // 3. एनीमेशन लूप
+        function animate() {
+            requestAnimationFrame(animate);
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
 </body>
 </html>
