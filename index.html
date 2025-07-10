@@ -1,37 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redwood - 3D Furniture Designing</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>Simple Calculator</title>
+  <style>
+    body {
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .calculator {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    }
+
+    #display {
+      width: 100%;
+      height: 50px;
+      font-size: 24px;
+      margin-bottom: 10px;
+      text-align: right;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 60px);
+      grid-gap: 10px;
+    }
+
+    .buttons button {
+      height: 60px;
+      font-size: 20px;
+      border: none;
+      background: #eee;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .buttons button:hover {
+      background: #ddd;
+    }
+
+    .buttons .operator {
+      background: #f9a825;
+      color: white;
+    }
+
+    .buttons .equal {
+      background: #4caf50;
+      color: white;
+    }
+
+    .buttons .clear {
+      background: #f44336;
+      color: white;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Redwood</h1>
-        <nav>
-            <ul>
-                <li><a href="                  
-                <li><a href="#">Furniture</a></li>
-                <li><a href="                 
-            </ul>
-        </nav>
-    </header>
-    <main>
-        <section id="design-area">
-            <!-- 3D design area will go here -->
-            <canvas id="design-canvas" width="800" height="600"></canvas>
-        </section>
-        <section id="furniture-library">
-            <!-- Furniture library will go here -->
-            <ul>
-                <li><img src="chair.png" alt="Chair"></li>
-                <li><img src="table.png" alt="Table"></li>
-                <li><img src="bed.png" alt="Bed"></li>
-            </ul>
-        </section>
-    </main>
-    <script src="script.js"></script>
+
+  <div class="calculator">
+    <input type="text" id="display" disabled>
+    <div class="buttons">
+      <button onclick="clearDisplay()" class="clear">C</button>
+      <button onclick="appendValue('(')">(</button>
+      <button onclick="appendValue(')')">)</button>
+      <button onclick="appendValue('/') " class="operator">÷</button>
+
+      <button onclick="appendValue('7')">7</button>
+      <button onclick="appendValue('8')">8</button>
+      <button onclick="appendValue('9')">9</button>
+      <button onclick="appendValue('*')" class="operator">×</button>
+
+      <button onclick="appendValue('4')">4</button>
+      <button onclick="appendValue('5')">5</button>
+      <button onclick="appendValue('6')">6</button>
+      <button onclick="appendValue('-')" class="operator">−</button>
+
+      <button onclick="appendValue('1')">1</button>
+      <button onclick="appendValue('2')">2</button>
+      <button onclick="appendValue('3')">3</button>
+      <button onclick="appendValue('+')" class="operator">+</button>
+
+      <button onclick="appendValue('0')">0</button>
+      <button onclick="appendValue('.')">.</button>
+      <button onclick="calculate()" class="equal">=</button>
+      <button onclick="backspace()">⌫</button>
+    </div>
+  </div>
+
+  <script>
+    function appendValue(val) {
+      document.getElementById("display").value += val;
+    }
+
+    function clearDisplay() {
+      document.getElementById("display").value = "";
+    }
+
+    function calculate() {
+      try {
+        document.getElementById("display").value = eval(document.getElementById("display").value);
+      } catch (e) {
+        alert("Invalid Expression");
+      }
+    }
+
+    function backspace() {
+      let current = document.getElementById("display").value;
+      document.getElementById("display").value = current.slice(0, -1);
+    }
+  </script>
+
 </body>
-                </html>
-                    
+</html>
