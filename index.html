@@ -1,56 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>3D Cube with Real Drag</title>
+    <title>3D लाल क्यूब</title>
     <style> body { margin: 0; overflow: hidden; } </style>
 </head>
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // 1. बेसिक सेटअप
+        // 1. सीन सेटअप
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // 2. क्यूब जोड़ें
+        // 2. लाल क्यूब जोड़ें
         const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // लाल रंग
         const cube = new THREE.Mesh(geometry, material);
         scene.add(cube);
         camera.position.z = 5;
 
-        // 3. ड्रैग फंक्शन (ठीक से काम करेगा)
+        // 3. ड्रैग फंक्शन (बिल्कुल सही)
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         let isDragging = false;
+        let offset = new THREE.Vector3();
 
-        // माउस पोजीशन अपडेट
         function onMouseMove(event) {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
             
             if(isDragging) {
                 raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObject(cube);
-                if(intersects.length > 0) {
-                    cube.position.copy(intersects[0].point);
-                }
+                const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+                const intersection = new THREE.Vector3();
+                raycaster.ray.intersectPlane(plane, intersection);
+                cube.position.copy(intersection.sub(offset));
             }
         }
 
-        // माउस इवेंट्स
-        window.addEventListener('mousedown', () => {
+        window.addEventListener('mousedown', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+            
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObject(cube);
-            if(intersects.length > 0) isDragging = true;
+            
+            if(intersects.length > 0) {
+                isDragging = true;
+                const intersectPoint = intersects[0].point;
+                offset.copy(intersectPoint.sub(cube.position));
+            }
         });
 
         window.addEventListener('mouseup', () => { isDragging = false; });
         window.addEventListener('mousemove', onMouseMove);
 
-        // 4. एनिमेशन लूप
+        // 4. एनिमेशन
         function animate() {
             requestAnimationFrame(animate);
             if(!isDragging) cube.rotation.y += 0.01;
