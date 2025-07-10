@@ -1,39 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ईंट के रंग का 3D क्यूब</title>
+    <title>3D Brick Cube</title>
     <style>
         body { 
-            margin: 0; 
-            background: white; /* सफेद बैकग्राउंड */
-        }
-        canvas { 
-            display: block; 
+            margin: 0;
+            background: white;
+            overflow: hidden;
         }
     </style>
 </head>
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // 1. सीन सेटअप
+        // Scene setup
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // 2. ईंट के रंग का क्यूब (Brick Color: #B22222)
+        // Create brick-colored cube (RGB: 178, 34, 34)
         const geometry = new THREE.BoxGeometry(1, 1, 1);
         const material = new THREE.MeshBasicMaterial({ color: 0xB22222 });
         const cube = new THREE.Mesh(geometry, material);
         scene.add(cube);
 
-        // 3. क्यूब को ज़मीन पर रखें (Y-पोजीशन -1)
-        cube.position.y = -1;
-        camera.position.z = 5;
+        // Position cube on "ground" (lower part of screen)
+        cube.position.y = -0.5;
+        camera.position.z = 3;
 
-        // 4. स्थिर रेंडर (बिना घूमे)
+        // Static render (no animation)
         renderer.render(scene, camera);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.render(scene, camera);
+        });
     </script>
 </body>
 </html>
