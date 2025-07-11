@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-width=360px">
-    <title>Kaarigar3D - Mobile Furniture Designer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaarigar3D - Furniture Designer</title>
     <style>
-        /* Base Styles */
         :root {
             --primary: #2c3e50;
             --secondary: #3498db;
@@ -61,9 +60,6 @@
             font-size: 20px;
             width: 32px;
             height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         
         /* Main Content */
@@ -79,54 +75,35 @@
             flex: 1;
             background-color: #e9ecef;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
-            overflow: hidden;
+        }
+        
+        #canvas {
+            width: 100%;
+            height: 100%;
         }
         
         .canvas-placeholder {
-            width: 80%;
-            height: 60%;
-            background-color: #dee2e6;
-            border: 2px dashed #adb5bd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             color: #6c757d;
             font-size: 18px;
-            font-weight: 500;
+            text-align: center;
         }
         
-        /* Sidebar */
-        .sidebar {
-            width: 280px;
-            background-color: var(--card-bg);
-            border-left: 1px solid var(--border);
-            padding: 12px;
-            overflow-y: auto;
-            transform: translateX(100%);
+        .active-tool-display {
             position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            transition: transform 0.3s ease;
-            z-index: 10;
-        }
-        
-        .sidebar.open {
-            transform: translateX(0);
-        }
-        
-        .sidebar-section {
-            margin-bottom: 16px;
-        }
-        
-        .sidebar-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--primary);
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
         }
         
         /* Toolbar */
@@ -185,84 +162,64 @@
         .tool-btn.active {
             border-color: var(--secondary);
             color: var(--secondary);
+            background-color: rgba(52, 152, 219, 0.1);
         }
         
-        /* Home Screen */
-        .home-screen {
-            padding: 16px;
-            flex: 1;
-            overflow-y: auto;
-            display: none;
-        }
-        
-        .home-screen.active {
-            display: block;
-        }
-        
-        .recent-projects {
-            margin-top: 16px;
-        }
-        
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 12px;
-        }
-        
-        .project-card {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .project-thumbnail {
-            height: 100px;
-            background-color: #e9ecef;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #6c757d;
-        }
-        
-        .project-info {
-            padding: 8px;
-        }
-        
-        .project-name {
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-        
-        .project-date {
-            font-size: 12px;
-            color: #6c757d;
-        }
-        
-        .new-project-btn {
+        /* Side Panel */
+        .side-panel {
             position: fixed;
-            bottom: 88px;
-            right: 16px;
-            width: 56px;
-            height: 56px;
+            top: 56px;
+            right: 0;
+            width: 280px;
+            height: calc(100vh - 128px);
+            background-color: var(--card-bg);
+            border-left: 1px solid var(--border);
+            padding: 16px;
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 10;
+        }
+        
+        .side-panel.open {
+            transform: translateX(0);
+        }
+        
+        .panel-section {
+            margin-bottom: 16px;
+        }
+        
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        
+        /* Unit Selector */
+        .unit-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .unit-btn {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background-color: white;
+            font-size: 12px;
+        }
+        
+        .unit-btn.active {
             background-color: var(--secondary);
             color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 24px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            z-index: 20;
-        }
-        
-        /* Utility Classes */
-        .hidden {
-            display: none !important;
+            border-color: var(--secondary);
         }
         
         /* Responsive Adjustments */
         @media (max-width: 480px) {
-            .sidebar {
+            .side-panel {
                 width: 85%;
             }
             
@@ -270,10 +227,6 @@
                 width: 44px;
                 height: 44px;
                 font-size: 11px;
-            }
-            
-            .tool-btn .icon {
-                font-size: 16px;
             }
         }
     </style>
@@ -283,91 +236,54 @@
     <div class="header">
         <div class="app-title">Kaarigar3D</div>
         <div class="powered-by">Powered by Abdul Rahman</div>
-        <button class="menu-btn">⋮</button>
+        <button class="menu-btn" id="menuBtn">⋮</button>
     </div>
     
     <!-- Main Content -->
     <div class="main-content">
         <!-- Canvas Area -->
         <div class="canvas-container">
-            <div class="canvas-placeholder">3D View Area</div>
+            <div class="active-tool-display" id="activeTool">No tool selected</div>
+            <div class="canvas-placeholder" id="canvasPlaceholder">3D View Area</div>
+            <canvas id="canvas"></canvas>
         </div>
         
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-title">Material</div>
-                <button class="tool-btn">
-                    <span class="icon">🎨</span>
-                    <span>Color</span>
+        <!-- Side Panel -->
+        <div class="side-panel" id="sidePanel">
+            <div class="panel-section">
+                <div class="panel-title">Units</div>
+                <div class="unit-selector">
+                    <button class="unit-btn active" data-unit="mm">mm</button>
+                    <button class="unit-btn" data-unit="cm">cm</button>
+                    <button class="unit-btn" data-unit="in">inch</button>
+                    <button class="unit-btn" data-unit="ft">feet</button>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-title">Project</div>
+                <button class="tool-btn" id="saveBtn">
+                    <span class="icon">💾</span>
+                    <span>Save</span>
                 </button>
-                <button class="tool-btn">
-                    <span class="icon">🖼️</span>
-                    <span>Texture</span>
+                <button class="tool-btn" id="loadBtn">
+                    <span class="icon">📂</span>
+                    <span>Load</span>
+                </button>
+                <button class="tool-btn" id="screenshotBtn">
+                    <span class="icon">📷</span>
+                    <span>Screenshot</span>
                 </button>
             </div>
             
-            <div class="sidebar-section">
-                <div class="sidebar-title">Dimensions</div>
-                <div style="margin-bottom: 8px;">
-                    <div>Width: 100 cm</div>
-                    <input type="range" min="10" max="200" value="100" style="width:100%">
-                </div>
-                <div style="margin-bottom: 8px;">
-                    <div>Height: 80 cm</div>
-                    <input type="range" min="10" max="200" value="80" style="width:100%">
-                </div>
-                <div style="margin-bottom: 8px;">
-                    <div>Depth: 50 cm</div>
-                    <input type="range" min="10" max="200" value="50" style="width:100%">
-                </div>
-            </div>
-            
-            <div class="sidebar-section">
-                <div class="sidebar-title">Units</div>
-                <div style="display: flex; gap: 8px;">
-                    <button class="tool-btn active">mm</button>
-                    <button class="tool-btn">cm</button>
-                    <button class="tool-btn">in</button>
-                    <button class="tool-btn">ft</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Home Screen -->
-        <div class="home-screen active">
-            <h2 style="font-size: 18px; margin-bottom: 12px;">Recent Projects</h2>
-            
-            <div class="recent-projects">
-                <div class="projects-grid">
-                    <div class="project-card">
-                        <div class="project-thumbnail">Thumbnail</div>
-                        <div class="project-info">
-                            <div class="project-name">Living Room Cabinet</div>
-                            <div class="project-date">Today, 10:30 AM</div>
-                        </div>
-                    </div>
-                    <div class="project-card">
-                        <div class="project-thumbnail">Thumbnail</div>
-                        <div class="project-info">
-                            <div class="project-name">Bookshelf Design</div>
-                            <div class="project-date">Yesterday</div>
-                        </div>
-                    </div>
-                    <div class="project-card">
-                        <div class="project-thumbnail">Thumbnail</div>
-                        <div class="project-info">
-                            <div class="project-name">Kitchen Modular</div>
-                            <div class="project-date">May 15</div>
-                        </div>
-                    </div>
+            <div class="panel-section" id="recentProjectsSection">
+                <div class="panel-title">Recent Projects</div>
+                <div id="recentProjectsList">
+                    <!-- Projects will be added here dynamically -->
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- New Project Button -->
-    <button class="new-project-btn">+</button>
     
     <!-- Toolbar -->
     <div class="toolbar">
@@ -375,23 +291,23 @@
         <div class="tool-group">
             <div class="tool-group-title">Draw</div>
             <div class="tool-buttons">
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Line">
                     <span class="icon">📏</span>
                     <span>Line</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Rectangle">
                     <span class="icon">⬛</span>
                     <span>Rect</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Circle">
                     <span class="icon">⚪</span>
                     <span>Circle</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Arc">
                     <span class="icon">⌒</span>
                     <span>Arc</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Polygon">
                     <span class="icon">🔶</span>
                     <span>Poly</span>
                 </button>
@@ -402,23 +318,23 @@
         <div class="tool-group">
             <div class="tool-group-title">Modify</div>
             <div class="tool-buttons">
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Push/Pull">
                     <span class="icon">⇳</span>
                     <span>Push/Pull</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Move">
                     <span class="icon">↑</span>
                     <span>Move</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Rotate">
                     <span class="icon">↻</span>
                     <span>Rotate</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Scale">
                     <span class="icon">⇲</span>
                     <span>Scale</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Mirror">
                     <span class="icon">🔄</span>
                     <span>Mirror</span>
                 </button>
@@ -429,19 +345,19 @@
         <div class="tool-group">
             <div class="tool-group-title">Measure</div>
             <div class="tool-buttons">
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Ruler">
                     <span class="icon">📐</span>
-                    <span>Measure</span>
+                    <span>Ruler</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Dimension">
                     <span class="icon">📏</span>
                     <span>Dimension</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Protractor">
                     <span class="icon">∠</span>
-                    <span>Angle</span>
+                    <span>Protractor</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Area">
                     <span class="icon">▣</span>
                     <span>Area</span>
                 </button>
@@ -452,21 +368,21 @@
         <div class="tool-group">
             <div class="tool-group-title">View</div>
             <div class="tool-buttons">
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Orbit">
                     <span class="icon">👁️</span>
                     <span>Orbit</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Pan">
                     <span class="icon">✋</span>
                     <span>Pan</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Zoom In">
                     <span class="icon">🔍</span>
-                    <span>Zoom</span>
+                    <span>Zoom In</span>
                 </button>
-                <button class="tool-btn">
-                    <span class="icon">◻</span>
-                    <span>Reset</span>
+                <button class="tool-btn" data-tool="Zoom Out">
+                    <span class="icon">🔎</span>
+                    <span>Zoom Out</span>
                 </button>
             </div>
         </div>
@@ -475,15 +391,15 @@
         <div class="tool-group">
             <div class="tool-group-title">Material</div>
             <div class="tool-buttons">
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Paint Bucket">
                     <span class="icon">🎨</span>
                     <span>Paint</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Eyedropper">
                     <span class="icon">🖌️</span>
                     <span>Eyedrop</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Texture">
                     <span class="icon">🖼️</span>
                     <span>Texture</span>
                 </button>
@@ -494,19 +410,19 @@
         <div class="tool-group">
             <div class="tool-group-title">Objects</div>
             <div class="tool-buttons">
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Group">
                     <span class="icon">📦</span>
                     <span>Group</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Ungroup">
                     <span class="icon">📦</span>
                     <span>Ungroup</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Duplicate">
                     <span class="icon">⎘</span>
                     <span>Duplicate</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Cut">
                     <span class="icon">✂</span>
                     <span>Cut</span>
                 </button>
@@ -517,20 +433,184 @@
         <div class="tool-group">
             <div class="tool-group-title">File</div>
             <div class="tool-buttons">
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Save">
                     <span class="icon">💾</span>
                     <span>Save</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Export">
                     <span class="icon">📤</span>
                     <span>Export</span>
                 </button>
-                <button class="tool-btn">
+                <button class="tool-btn" data-tool="Load">
                     <span class="icon">📥</span>
                     <span>Load</span>
                 </button>
             </div>
         </div>
     </div>
+
+    <script>
+        // App State
+        const state = {
+            activeTool: null,
+            unit: 'mm',
+            projects: [],
+            currentProject: null
+        };
+        
+        // DOM Elements
+        const activeToolDisplay = document.getElementById('activeTool');
+        const canvasPlaceholder = document.getElementById('canvasPlaceholder');
+        const menuBtn = document.getElementById('menuBtn');
+        const sidePanel = document.getElementById('sidePanel');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const screenshotBtn = document.getElementById('screenshotBtn');
+        const recentProjectsList = document.getElementById('recentProjectsList');
+        const unitBtns = document.querySelectorAll('.unit-btn');
+        const toolBtns = document.querySelectorAll('.tool-btn[data-tool]');
+        
+        // Initialize
+        function init() {
+            loadProjects();
+            setupEventListeners();
+            updateRecentProjectsList();
+        }
+        
+        // Event Listeners
+        function setupEventListeners() {
+            // Menu button
+            menuBtn.addEventListener('click', () => {
+                sidePanel.classList.toggle('open');
+            });
+            
+            // Tool buttons
+            toolBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tool = btn.dataset.tool;
+                    selectTool(tool);
+                });
+            });
+            
+            // Unit buttons
+            unitBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const unit = btn.dataset.unit;
+                    selectUnit(unit);
+                });
+            });
+            
+            // Save/Load buttons
+            saveBtn.addEventListener('click', saveProject);
+            loadBtn.addEventListener('click', () => {
+                // In a real app, this would open a project selection dialog
+                alert('Load project functionality would go here');
+            });
+            
+            screenshotBtn.addEventListener('click', takeScreenshot);
+        }
+        
+        // Tool Selection
+        function selectTool(tool) {
+            state.activeTool = tool;
+            activeToolDisplay.textContent = `Selected Tool: ${tool}`;
+            
+            // Update active button
+            toolBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tool === tool) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Simulate tool action on canvas
+            canvasPlaceholder.textContent = `Using: ${tool} tool`;
+        }
+        
+        // Unit Selection
+        function selectUnit(unit) {
+            state.unit = unit;
+            localStorage.setItem('preferredUnit', unit);
+            
+            // Update active button
+            unitBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.unit === unit) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        // Project Management
+        function saveProject() {
+            const project = {
+                id: Date.now(),
+                name: `Project ${state.projects.length + 1}`,
+                date: new Date().toLocaleString(),
+                tool: state.activeTool || 'None',
+                unit: state.unit,
+                thumbnail: null // Would be canvas screenshot in real app
+            };
+            
+            state.projects.unshift(project); // Add to beginning
+            if (state.projects.length > 5) {
+                state.projects.pop(); // Keep only 5 most recent
+            }
+            
+            localStorage.setItem('kaarigarProjects', JSON.stringify(state.projects));
+            updateRecentProjectsList();
+            alert(`Project saved with ${state.unit} units`);
+        }
+        
+        function loadProjects() {
+            const savedProjects = localStorage.getItem('kaarigarProjects');
+            if (savedProjects) {
+                state.projects = JSON.parse(savedProjects);
+            }
+            
+            const savedUnit = localStorage.getItem('preferredUnit');
+            if (savedUnit) {
+                selectUnit(savedUnit);
+            }
+        }
+        
+        function updateRecentProjectsList() {
+            recentProjectsList.innerHTML = '';
+            
+            if (state.projects.length === 0) {
+                recentProjectsList.innerHTML = '<p>No recent projects</p>';
+                return;
+            }
+            
+            state.projects.forEach(project => {
+                const projectEl = document.createElement('div');
+                projectEl.className = 'tool-btn';
+                projectEl.style.marginBottom = '8px';
+                projectEl.style.textAlign = 'left';
+                projectEl.style.padding = '8px';
+                projectEl.innerHTML = `
+                    <div style="font-weight:600;">${project.name}</div>
+                    <div style="font-size:11px;color:#666;">${project.date}</div>
+                    <div style="font-size:11px;">Tool: ${project.tool}, Units: ${project.unit}</div>
+                `;
+                recentProjectsList.appendChild(projectEl);
+            });
+        }
+        
+        // Screenshot
+        function takeScreenshot() {
+            // In a real app, this would use html2canvas or similar
+            alert('Screenshot functionality would capture the canvas here');
+            
+            // Simulate adding a project thumbnail
+            if (state.projects.length > 0) {
+                state.projects[0].thumbnail = 'data:image/png;base64,...'; // Would be real image data
+                localStorage.setItem('kaarigarProjects', JSON.stringify(state.projects));
+            }
+        }
+        
+        // Initialize the app
+        init();
+    </script>
 </body>
 </html>
