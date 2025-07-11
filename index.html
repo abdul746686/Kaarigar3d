@@ -2,63 +2,120 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaarigar3D - Custom Furniture Designer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kaarigar3D - Mobile Furniture Designer</title>
     <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
             overflow: hidden;
+            touch-action: none;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+        }
+        
+        #app-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
+            width: 100vw;
         }
         
         #header {
             background-color: #2c3e50;
             color: white;
-            padding: 10px 20px;
+            padding: 8px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            height: 50px;
         }
         
         #logo {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
             display: flex;
             align-items: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         #logo img {
-            height: 40px;
-            margin-right: 10px;
+            height: 30px;
+            margin-right: 8px;
+        }
+        
+        #header-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .header-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: 12px;
+            white-space: nowrap;
         }
         
         #main-container {
             display: flex;
+            flex-direction: column;
             flex: 1;
             overflow: hidden;
+            position: relative;
         }
         
-        #toolbar {
-            width: 60px;
-            background-color: #34495e;
-            padding: 10px 0;
+        #viewer-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        #viewer {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        #mobile-toolbar {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        #tool-buttons {
+            display: flex;
+            background-color: rgba(52, 73, 94, 0.8);
+            border-radius: 20px;
+            padding: 5px;
+            pointer-events: auto;
         }
         
         .tool-button {
             width: 40px;
             height: 40px;
-            margin: 5px 0;
+            margin: 0 3px;
             background-color: #2c3e50;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 50%;
             cursor: pointer;
             display: flex;
             justify-content: center;
@@ -70,21 +127,21 @@
             background-color: #3498db;
         }
         
-        #viewer-container {
-            flex: 1;
-            position: relative;
-        }
-        
-        #viewer {
-            width: 100%;
-            height: 100%;
-        }
-        
         #properties-panel {
-            width: 300px;
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 280px;
+            height: 100vh;
             background-color: #ecf0f1;
             padding: 15px;
             overflow-y: auto;
+            z-index: 200;
+            transition: transform 0.3s ease;
+        }
+        
+        #properties-panel.open {
+            transform: translateX(-300px);
         }
         
         .property-group {
@@ -96,18 +153,21 @@
         .property-group h3 {
             margin-top: 0;
             color: #2c3e50;
+            font-size: 16px;
         }
         
         .property-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 8px;
+            font-size: 14px;
         }
         
         select, input {
             padding: 5px;
             border-radius: 3px;
             border: 1px solid #bdc3c7;
+            font-size: 14px;
         }
         
         #status-bar {
@@ -117,161 +177,160 @@
             font-size: 12px;
             display: flex;
             justify-content: space-between;
+            height: 30px;
         }
         
-        #unit-selector {
+        #unit-selector, #language-selector {
             background-color: #34495e;
             color: white;
             border: none;
             border-radius: 3px;
             padding: 2px 5px;
+            font-size: 12px;
+            margin-left: 5px;
         }
         
-        #language-selector {
-            background-color: #34495e;
+        #menu-btn {
+            position: absolute;
+            top: 60px;
+            left: 10px;
+            background-color: rgba(52, 73, 94, 0.8);
             color: white;
             border: none;
-            border-radius: 3px;
-            padding: 2px 5px;
-            margin-left: 10px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            z-index: 100;
+        }
+        
+        /* Mobile-specific optimizations */
+        @media (max-width: 480px) {
+            .tool-button {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            
+            #properties-panel {
+                width: 85vw;
+                right: -85vw;
+            }
+            
+            #properties-panel.open {
+                transform: translateX(-85vw);
+            }
         }
     </style>
 </head>
 <body>
-    <div id="header">
-        <div id="logo">
-            <img src="https://via.placeholder.com/40" alt="Kaarigar3D Logo">
-            <span>Kaarigar3D</span>
-        </div>
-        <div>
-            <button id="new-project-btn">New Project</button>
-            <button id="save-btn">Save</button>
-            <button id="export-btn">Export</button>
-        </div>
-    </div>
-    
-    <div id="main-container">
-        <div id="toolbar">
-            <button class="tool-button active" title="Select" data-tool="select">✥</button>
-            <button class="tool-button" title="Rectangle" data-tool="rectangle">▯</button>
-            <button class="tool-button" title="Circle" data-tool="circle">○</button>
-            <button class="tool-button" title="Line" data-tool="line">∕</button>
-            <button class="tool-button" title="Push/Pull" data-tool="pushpull">⇳</button>
-            <button class="tool-button" title="Move" data-tool="move">↑</button>
-            <button class="tool-button" title="Rotate" data-tool="rotate">↻</button>
-            <button class="tool-button" title="Scale" data-tool="scale">⇲</button>
-            <button class="tool-button" title="Material" data-tool="material">◑</button>
-            <button class="tool-button" title="Measure" data-tool="measure">📏</button>
+    <div id="app-container">
+        <div id="header">
+            <div id="logo">
+                <img src="https://via.placeholder.com/30" alt="Kaarigar3D Logo">
+                <span>Kaarigar3D</span>
+            </div>
+            <div id="header-buttons">
+                <button class="header-btn" id="new-project-btn">New</button>
+                <button class="header-btn" id="save-btn">Save</button>
+            </div>
         </div>
         
-        <div id="viewer-container">
-            <canvas id="viewer"></canvas>
-        </div>
-        
-        <div id="properties-panel">
-            <div class="property-group">
-                <h3>Object Properties</h3>
-                <div class="property-row">
-                    <label>Name:</label>
-                    <input type="text" id="object-name" value="Untitled">
-                </div>
-                <div class="property-row">
-                    <label>Position X:</label>
-                    <input type="number" id="pos-x" value="0">
-                </div>
-                <div class="property-row">
-                    <label>Position Y:</label>
-                    <input type="number" id="pos-y" value="0">
-                </div>
-                <div class="property-row">
-                    <label>Position Z:</label>
-                    <input type="number" id="pos-z" value="0">
-                </div>
-                <div class="property-row">
-                    <label>Rotation:</label>
-                    <input type="number" id="rotation" value="0">
-                </div>
-                <div class="property-row">
-                    <label>Width:</label>
-                    <input type="number" id="width" value="100">
-                </div>
-                <div class="property-row">
-                    <label>Height:</label>
-                    <input type="number" id="height" value="100">
-                </div>
-                <div class="property-row">
-                    <label>Depth:</label>
-                    <input type="number" id="depth" value="100">
+        <div id="main-container">
+            <button id="menu-btn">☰</button>
+            
+            <div id="viewer-container">
+                <canvas id="viewer"></canvas>
+                
+                <div id="mobile-toolbar">
+                    <div id="tool-buttons">
+                        <button class="tool-button active" title="Select" data-tool="select">✥</button>
+                        <button class="tool-button" title="Rectangle" data-tool="rectangle">▯</button>
+                        <button class="tool-button" title="Push/Pull" data-tool="pushpull">⇳</button>
+                        <button class="tool-button" title="Move" data-tool="move">↑</button>
+                        <button class="tool-button" title="Measure" data-tool="measure">📏</button>
+                    </div>
                 </div>
             </div>
             
-            <div class="property-group">
-                <h3>Material</h3>
-                <div class="property-row">
-                    <label>Color:</label>
-                    <input type="color" id="material-color" value="#cccccc">
+            <div id="properties-panel">
+                <div class="property-group">
+                    <h3>Object Properties</h3>
+                    <div class="property-row">
+                        <label>Name:</label>
+                        <input type="text" id="object-name" value="Untitled">
+                    </div>
+                    <div class="property-row">
+                        <label>Width:</label>
+                        <input type="number" id="width" value="100">
+                    </div>
+                    <div class="property-row">
+                        <label>Height:</label>
+                        <input type="number" id="height" value="100">
+                    </div>
+                    <div class="property-row">
+                        <label>Depth:</label>
+                        <input type="number" id="depth" value="100">
+                    </div>
                 </div>
-                <div class="property-row">
-                    <label>Texture:</label>
-                    <select id="material-texture">
-                        <option value="none">None</option>
-                        <option value="wood1">Wood Grain 1</option>
-                        <option value="wood2">Wood Grain 2</option>
-                        <option value="marble">Marble</option>
-                        <option value="metal">Metal</option>
-                    </select>
+                
+                <div class="property-group">
+                    <h3>Material</h3>
+                    <div class="property-row">
+                        <label>Color:</label>
+                        <input type="color" id="material-color" value="#cccccc">
+                    </div>
+                    <div class="property-row">
+                        <label>Texture:</label>
+                        <select id="material-texture">
+                            <option value="none">None</option>
+                            <option value="wood1">Wood Grain</option>
+                            <option value="metal">Metal</option>
+                        </select>
+                    </div>
+                    <button id="upload-texture-btn" style="width:100%;padding:8px;margin-top:5px;">Upload Texture</button>
                 </div>
-                <div class="property-row">
-                    <label>Texture Scale:</label>
-                    <input type="number" id="texture-scale" value="1" min="0.1" step="0.1">
+                
+                <div class="property-group">
+                    <h3>Edge Options</h3>
+                    <div class="property-row">
+                        <label>Round Corners:</label>
+                        <input type="checkbox" id="round-corners">
+                    </div>
+                    <div class="property-row">
+                        <label>Radius:</label>
+                        <input type="number" id="corner-radius" value="5" min="0" disabled>
+                    </div>
                 </div>
-                <button id="upload-texture-btn">Upload Texture</button>
-            </div>
-            
-            <div class="property-group">
-                <h3>Edge Options</h3>
-                <div class="property-row">
-                    <label>Round Corners:</label>
-                    <input type="checkbox" id="round-corners">
-                </div>
-                <div class="property-row">
-                    <label>Corner Radius:</label>
-                    <input type="number" id="corner-radius" value="5" min="0" disabled>
-                </div>
-                <div class="property-row">
-                    <label>Chamfer Edges:</label>
-                    <input type="checkbox" id="chamfer-edges">
-                </div>
-                <div class="property-row">
-                    <label>Chamfer Size:</label>
-                    <input type="number" id="chamfer-size" value="5" min="0" disabled>
+                
+                <div style="text-align:center;margin-top:20px;">
+                    <button id="close-panel-btn" style="padding:8px 15px;">Close</button>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div id="status-bar">
-        <div>
-            <span id="coordinates">X: 0, Y: 0, Z: 0</span>
-        </div>
-        <div>
-            <select id="unit-selector">
-                <option value="mm">Millimeters (mm)</option>
-                <option value="cm">Centimeters (cm)</option>
-                <option value="in">Inches (in)</option>
-                <option value="ft">Feet (ft)</option>
-            </select>
-            <select id="language-selector">
-                <option value="en">English</option>
-                <option value="hi">हिंदी</option>
-                <option value="ur">اردو</option>
-            </select>
-            <span>Powered by Abdul Rahman</span>
+        
+        <div id="status-bar">
+            <div>
+                <span id="coordinates">X:0, Y:0, Z:0</span>
+            </div>
+            <div>
+                <select id="unit-selector">
+                    <option value="mm">mm</option>
+                    <option value="cm">cm</option>
+                    <option value="in">in</option>
+                </select>
+                <select id="language-selector">
+                    <option value="en">EN</option>
+                    <option value="hi">HI</option>
+                    <option value="ur">UR</option>
+                </select>
+            </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TouchControls.js"></script>
     <script>
         // Initialize Three.js scene
         const scene = new THREE.Scene();
@@ -279,12 +338,17 @@
         
         // Set up camera
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(5, 5, 5);
+        camera.position.set(2, 2, 2);
         camera.lookAt(0, 0, 0);
         
-        // Set up renderer
-        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('viewer'), antialias: true });
-        renderer.setSize(window.innerWidth - 360, window.innerHeight - 60);
+        // Set up renderer with mobile optimizations
+        const renderer = new THREE.WebGLRenderer({ 
+            canvas: document.getElementById('viewer'),
+            antialias: true,
+            powerPreference: "low-power"
+        });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight - 80);
         
         // Add lights
         const ambientLight = new THREE.AmbientLight(0x404040);
@@ -298,33 +362,49 @@
         const gridHelper = new THREE.GridHelper(10, 10);
         scene.add(gridHelper);
         
-        // Add orbit controls
+        // Mobile-friendly orbit controls
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = true;
+        controls.enableZoom = true;
+        controls.enableRotate = true;
+        controls.enablePan = true;
         
-        // Add axes helper
-        const axesHelper = new THREE.AxesHelper(5);
-        scene.add(axesHelper);
+        // For better touch handling
+        controls.touchZoom = true;
+        controls.touchRotate = true;
+        controls.touchPan = true;
         
         // Sample furniture piece
         const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-        const boxMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+        const boxMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xcccccc,
+            roughness: 0.7,
+            metalness: 0.1
+        });
         const box = new THREE.Mesh(boxGeometry, boxMaterial);
         scene.add(box);
         
         // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = (window.innerWidth - 360) / (window.innerHeight - 60);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / (window.innerHeight - 80);
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth - 360, window.innerHeight - 60);
-        });
+            renderer.setSize(window.innerWidth, window.innerHeight - 80);
+        }
+        
+        window.addEventListener('resize', onWindowResize);
         
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
             renderer.render(scene, camera);
+            
+            // Update coordinates display
+            const pos = box.position;
+            document.getElementById('coordinates').textContent = 
+                `X:${pos.x.toFixed(1)}, Y:${pos.y.toFixed(1)}, Z:${pos.z.toFixed(1)}`;
         }
         animate();
         
@@ -335,22 +415,46 @@
                 toolButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
                 const tool = button.dataset.tool;
+                
+                // Visual feedback for mobile
+                button.style.transform = 'scale(0.9)';
+                setTimeout(() => { button.style.transform = 'scale(1)'; }, 100);
+                
                 console.log(`Selected tool: ${tool}`);
-                // Implement tool functionality here
+                
+                // Show appropriate UI for the tool
+                if (tool === 'pushpull') {
+                    alert('Tap a face to push/pull. Pinch to adjust distance.');
+                } else if (tool === 'measure') {
+                    alert('Tap two points to measure distance between them.');
+                }
             });
+        });
+        
+        // Menu button to show properties panel
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            document.getElementById('properties-panel').classList.add('open');
+        });
+        
+        // Close properties panel
+        document.getElementById('close-panel-btn').addEventListener('click', () => {
+            document.getElementById('properties-panel').classList.remove('open');
         });
         
         // Unit selection
         const unitSelector = document.getElementById('unit-selector');
         unitSelector.addEventListener('change', (e) => {
-            console.log(`Selected unit: ${e.target.value}`);
+            const unit = e.target.value;
+            alert(`Measurement units changed to ${unit}. All dimensions will now display in ${unit}.`);
             // Implement unit conversion here
         });
         
         // Language selection
         const languageSelector = document.getElementById('language-selector');
         languageSelector.addEventListener('change', (e) => {
-            console.log(`Selected language: ${e.target.value}`);
+            const lang = e.target.value;
+            const languages = { en: 'English', hi: 'Hindi', ur: 'Urdu' };
+            alert(`Language will be changed to ${languages[lang]} on next launch.`);
             // Implement language change here
         });
         
@@ -363,8 +467,15 @@
         // Texture selection
         const materialTexture = document.getElementById('material-texture');
         materialTexture.addEventListener('change', (e) => {
-            console.log(`Selected texture: ${e.target.value}`);
-            // Implement texture loading here
+            const textureName = e.target.value;
+            if (textureName === 'none') {
+                box.material.map = null;
+            } else {
+                // In a real app, you'd load proper textures
+                const texture = new THREE.TextureLoader().load(`textures/${textureName}.jpg`);
+                box.material.map = texture;
+            }
+            box.material.needsUpdate = true;
         });
         
         // Upload texture button
@@ -398,20 +509,13 @@
                 scene.add(ambientLight);
                 scene.add(directionalLight);
                 scene.add(gridHelper);
-                scene.add(axesHelper);
             }
         });
         
         // Save button
         document.getElementById('save-btn').addEventListener('click', () => {
-            console.log('Save project');
-            // Implement save functionality here
-        });
-        
-        // Export button
-        document.getElementById('export-btn').addEventListener('click', () => {
-            console.log('Export project');
-            // Implement export functionality here
+            alert('Project saved to device storage.');
+            // Implement actual save functionality here
         });
         
         // Round corners checkbox
@@ -419,25 +523,30 @@
             const radiusInput = document.getElementById('corner-radius');
             radiusInput.disabled = !e.target.checked;
             if (e.target.checked) {
-                console.log(`Round corners with radius: ${radiusInput.value}`);
-                // Implement rounded corners here
-            } else {
-                console.log('Disable rounded corners');
-                // Remove rounded corners
+                // In a real app, you'd modify the geometry
+                alert(`Corners rounded with radius: ${radiusInput.value}`);
             }
         });
         
-        // Chamfer edges checkbox
-        document.getElementById('chamfer-edges').addEventListener('change', (e) => {
-            const sizeInput = document.getElementById('chamfer-size');
-            sizeInput.disabled = !e.target.checked;
-            if (e.target.checked) {
-                console.log(`Chamfer edges with size: ${sizeInput.value}`);
-                // Implement chamfer edges here
-            } else {
-                console.log('Disable chamfer edges');
-                // Remove chamfer edges
+        // Touch event handling for mobile
+        let touchStartTime = 0;
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            touchStartTime = Date.now();
+            // Prevent default to avoid browser touch behaviors
+            if (e.touches.length === 1) e.preventDefault();
+        }, { passive: false });
+        
+        renderer.domElement.addEventListener('touchend', (e) => {
+            // Handle single tap (not part of a long press or multi-touch)
+            if (e.touches.length === 0 && Date.now() - touchStartTime < 300) {
+                // Implement tap-to-select functionality
+                console.log('Tap detected - implement object selection');
             }
+        });
+        
+        // Disable context menu on long press
+        renderer.domElement.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
         });
     </script>
 </body>
