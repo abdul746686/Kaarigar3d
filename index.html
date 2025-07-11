@@ -1,1 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaarigar3D - Furniture Designer</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --border: #e0e0e0;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Header */
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 56px;
+            flex-shrink: 0;
+        }
+        
+        .app-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .powered-by {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 32px;
+            height: 32px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Canvas Area */
+        .canvas-container {
+            flex: 1;
+            background-color: #e9ecef;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .canvas-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #6c757d;
+            font-size: 18px;
+            text-align: center;
+        }
+        
+        .active-tool-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        /* Toolbar */
+        .toolbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border);
+            padding: 8px;
+            height: 72px;
+            overflow-x: auto;
+            white-space: nowrap;
+            z-index: 5;
+        }
+        
+        .tool-group {
+            display: inline-block;
+            margin-right: 16px;
+        }
+        
+        .tool-group-title {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+        
+        .tool-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .tool-btn {
+            width: 48px;
+            height: 48px;
+            background-color: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text);
+            text-align: center;
+            padding: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .tool-btn .icon {
+            font-size: 18px;
+            margin-bottom: 2px;
+        }
+        
+        .tool-btn.active {
+            border-color: var(--secondary);
+            color: var(--secondary);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        
+        /* Side Panel */
+        .side-panel {
+            position: fixed;
+            top: 56px;
+            right: 0;
+            width: 280px;
+            height: calc(100vh - 128px);
+            background-color: var(--card-bg);
+            border-left: 1px solid var(--border);
+            padding: 16px;
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 10;
+        }
+        
+        .side-panel.open {
+            transform: translateX(0);
+        }
+        
+        .panel-section {
+            margin-bottom: 16px;
+        }
+        
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        
+        /* Unit Selector */
+        .unit-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .unit-btn {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background-color: white;
+            font-size: 12px;
+        }
+        
+        .unit-btn.active {
+            background-color: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            .side-panel {
+                width: 85%;
+            }
+            
+            .tool-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="app-title">Kaarigar3D</div>
+        <div class="powered-by">Powered by Abdul Rahman</div>
+        <button class="menu-btn" id="menuBtn">⋮</button>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Canvas Area -->
+        <div class="canvas-container">
+            <div class="active-tool-display" id="activeTool">No tool selected</div>
+            <div class="canvas-placeholder" id="canvasPlaceholder">3D View Area</div>
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <!-- Side Panel -->
+        <div class="side-panel" id="sidePanel">
+            <div class="panel-section">
+                <div class="panel-title">Units</div>
+                <div class="unit-selector">
+                    <button class="unit-btn active" data-unit="mm">mm</button>
+                    <button class="unit-btn" data-unit="cm">cm</button>
+                    <button class="unit-btn" data-unit="in">inch</button>
+                    <button class="unit-btn" data-unit="ft">feet</button>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-title">Project</div>
+                <button class="tool-btn" id="saveBtn">
+                    <span class="icon">💾</span>
+                    <span>Save</span>
+                </button>
+                <button class="tool-btn" id="loadBtn">
+                    <span class="icon">📂</span>
+                    <span>Load</span>
+                </button>
+                <button class="tool-btn" id="screenshotBtn">
+                    <span class="icon">📷</span>
+                    <span>Screenshot</span>
+                </button>
+            </div>
+            
+            <div class="panel-section" id="recentProjectsSection">
+                <div class="panel-title">Recent Projects</div>
+                <div id="recentProjectsList">
+                    <!-- Projects will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <!-- Draw Tools -->
+        <div class="tool-group">
+            <div class="tool-group-title">Draw</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="Line">
+                    <span class="icon">📏</span>
+                    <span>Line</span>
+                </button>
+                <button class="tool-btn" data-tool="Rectangle">
+                    <span class="icon">⬛</span>
+                    <span>Rect</span>
+                </button>
+                <button class="tool-btn" data-tool="Circle">
+                    <span class="icon">⚪</span>
+                    <span>Circle</span>
+                </button>
+                <button class="tool-btn" data-tool="Arc">
+                    <span class="icon">⌒</span>
+                    <span>Arc</span>
+                </button>
+                <button class="tool-btn" data-tool="Polygon">
+                    <span class="icon">🔶</span>
+                    <span>Poly</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Modify Tools -->
+        <div class="tool-group">
+            <div class="tool-group-title">Modify</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="Push/Pull">
+                    <span class="icon">⇳</span>
+                    <span>Push/Pull</span>
+                </button>
+                <button class="tool-btn" data-tool="Move">
+                    <span class="icon">↑</span>
+                    <span>Move</span>
+                </button>
+                <button class="tool-btn" data-tool="Rotate">
+                    <span class="icon">↻</span>
+                    <span>Rotate</span>
+                </button>
+                <button class="tool-btn" data-tool="Scale">
+                    <span class="icon">⇲</span>
+                    <span>Scale</span>
+                </button>
+                <button class="tool-btn" data-tool="Mirror">
+                    <span class="icon">🔄</span>
+                    <span>Mirror</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Measurement -->
+        <div class="tool-group">
+            <div class="tool-group-title">Measure</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="Ruler">
+                    <span class="icon">📐</span>
+                    <span>Ruler</span>
+                </button>
+                <button class="tool-btn" data-tool="Dimension">
+                    <span class="icon">📏</span>
+                    <span>Dimension</span>
+                </button>
+                <button class="tool-btn" data-tool="Protractor">
+                    <span class="icon">∠</span>
+                    <span>Protractor</span>
+                </button>
+                <button class="tool-btn" data-tool="Area">
+                    <span class="icon">▣</span>
+                    <span>Area</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- View Tools -->
+        <div class="tool-group">
+            <div class="tool-group-title">View</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="Orbit">
+                    <span class="icon">👁️</span>
+                    <span>Orbit</span>
+                </button>
+                <button class="tool-btn" data-tool="Pan">
+                    <span class="icon">✋</span>
+                    <span>Pan</span>
+                </button>
+                <button class="tool-btn" data-tool="Zoom In">
+                    <span class="icon">🔍</span>
+                    <span>Zoom In</span>
+                </button>
+                <button class="tool-btn" data-tool="Zoom Out">
+                    <span class="icon">🔎</span>
+                    <span>Zoom Out</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Material -->
+        <div class="tool-group">
+            <div class="tool-group-title">Material</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="Paint Bucket">
+                    <span class="icon">🎨</span>
+                    <span>Paint</span>
+                </button>
+                <button class="tool-btn" data-tool="Eyedropper">
+                    <span class="icon">🖌️</span>
+                    <span>Eyedrop</span>
+                </button>
+                <button class="tool-btn" data-tool="Texture">
+                    <span class="icon">🖼️</span>
+                    <span>Texture</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Objects -->
+        <div class="tool-group">
+            <div class="tool-group-title">Objects</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="Group">
+                    <span class="icon">📦</span>
+                    <span>Group</span>
+                </button>
+                <button class="tool-btn" data-tool="Ungroup">
+                    <span class="icon">📦</span>
+                    <span>Ungroup</span>
+                </button>
+                <button class="tool-btn" data-tool="Duplicate">
+                    <span class="icon">⎘</span>
+                    <span>Duplicate</span>
+                </button>
+                <button class="tool-btn" data-tool="Cut">
+                    <span class="icon">✂</span>
+                    <span>Cut</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- File -->
+        <div class="tool-group">
+            <div class="tool-group-title">File</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="Save">
+                    <span class="icon">💾</span>
+                    <span>Save</span>
+                </button>
+                <button class="tool-btn" data-tool="Export">
+                    <span class="icon">📤</span>
+                    <span>Export</span>
+                </button>
+                <button class="tool-btn" data-tool="Load">
+                    <span class="icon">📥</span>
+                    <span>Load</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        // App State
+        const state = {
+            activeTool: null,
+            unit: 'mm',
+            projects: [],
+            currentProject: null
+        };
+        
+        // DOM Elements
+        const activeToolDisplay = document.getElementById('activeTool');
+        const canvasPlaceholder = document.getElementById('canvasPlaceholder');
+        const menuBtn = document.getElementById('menuBtn');
+        const sidePanel = document.getElementById('sidePanel');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const screenshotBtn = document.getElementById('screenshotBtn');
+        const recentProjectsList = document.getElementById('recentProjectsList');
+        const unitBtns = document.querySelectorAll('.unit-btn');
+        const toolBtns = document.querySelectorAll('.tool-btn[data-tool]');
+        
+        // Initialize
+        function init() {
+            loadProjects();
+            setupEventListeners();
+            updateRecentProjectsList();
+        }
+        
+        // Event Listeners
+        function setupEventListeners() {
+            // Menu button
+            menuBtn.addEventListener('click', () => {
+                sidePanel.classList.toggle('open');
+            });
+            
+            // Tool buttons
+            toolBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tool = btn.dataset.tool;
+                    selectTool(tool);
+                });
+            });
+            
+            // Unit buttons
+            unitBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const unit = btn.dataset.unit;
+                    selectUnit(unit);
+                });
+            });
+            
+            // Save/Load buttons
+            saveBtn.addEventListener('click', saveProject);
+            loadBtn.addEventListener('click', () => {
+                // In a real app, this would open a project selection dialog
+                alert('Load project functionality would go here');
+            });
+            
+            screenshotBtn.addEventListener('click', takeScreenshot);
+        }
+        
+        // Tool Selection
+        function selectTool(tool) {
+            state.activeTool = tool;
+            activeToolDisplay.textContent = `Selected Tool: ${tool}`;
+            
+            // Update active button
+            toolBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tool === tool) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Simulate tool action on canvas
+            canvasPlaceholder.textContent = `Using: ${tool} tool`;
+        }
+        
+        // Unit Selection
+        function selectUnit(unit) {
+            state.unit = unit;
+            localStorage.setItem('preferredUnit', unit);
+            
+            // Update active button
+            unitBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.unit === unit) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        // Project Management
+        function saveProject() {
+            const project = {
+                id: Date.now(),
+                name: `Project ${state.projects.length + 1}`,
+                date: new Date().toLocaleString(),
+                tool: state.activeTool || 'None',
+                unit: state.unit,
+                thumbnail: null // Would be canvas screenshot in real app
+            };
+            
+            state.projects.unshift(project); // Add to beginning
+            if (state.projects.length > 5) {
+                state.projects.pop(); // Keep only 5 most recent
+            }
+            
+            localStorage.setItem('kaarigarProjects', JSON.stringify(state.projects));
+            updateRecentProjectsList();
+            alert(`Project saved with ${state.unit} units`);
+        }
+        
+        function loadProjects() {
+            const savedProjects = localStorage.getItem('kaarigarProjects');
+            if (savedProjects) {
+                state.projects = JSON.parse(savedProjects);
+            }
+            
+            const savedUnit = localStorage.getItem('preferredUnit');
+            if (savedUnit) {
+                selectUnit(savedUnit);
+            }
+        }
+        
+        function updateRecentProjectsList() {
+            recentProjectsList.innerHTML = '';
+            
+            if (state.projects.length === 0) {
+                recentProjectsList.innerHTML = '<p>No recent projects</p>';
+                return;
+            }
+            
+            state.projects.forEach(project => {
+                const projectEl = document.createElement('div');
+                projectEl.className = 'tool-btn';
+                projectEl.style.marginBottom = '8px';
+                projectEl.style.textAlign = 'left';
+                projectEl.style.padding = '8px';
+                projectEl.innerHTML = `
+                    <div style="font-weight:600;">${project.name}</div>
+                    <div style="font-size:11px;color:#666;">${project.date}</div>
+                    <div style="font-size:11px;">Tool: ${project.tool}, Units: ${project.unit}</div>
+                `;
+                recentProjectsList.appendChild(projectEl);
+            });
+        }
+        
+        // Screenshot
+        function takeScreenshot() {
+            // In a real app, this would use html2canvas or similar
+            alert('Screenshot functionality would capture the canvas here');
+            
+            // Simulate adding a project thumbnail
+            if (state.projects.length > 0) {
+                state.projects[0].thumbnail = 'data:image/png;base64,...'; // Would be real image data
+                localStorage.setItem('kaarigarProjects', JSON.stringify(state.projects));
+            }
+        }
+        
+        // Initialize the app
+        init();canvas.addEventListener("mousedown", (e) => {
+    if (!currentTool) return;
+    isDrawing = true;
+    const rect = canvas.getBoundingClientRect();
+    startX = e.clientX - rect.left;
+    startY = e.clientY - rect.top;
+});
+
+canvas.addEventListener("mouseup", (e) => {
+    if (!isDrawing) return;
+    isDrawing = false;
+    const rect = canvas.getBoundingClientRect();
+    const endX = e.clientX - rect.left;
+    const endY = e.clientY - rect.top;
+
+    if (currentTool === "Line") {
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+    } else if (currentTool === "Rectangle") {
+        const width = endX - startX;
+        const height = endY - startY;
+        ctx.strokeRect(startX, startY, width, height);
+    }
+});
+    </script>
+</body>
+</html>
+```
