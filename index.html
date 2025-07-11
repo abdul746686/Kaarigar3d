@@ -1,186 +1,444 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Advanced Calculator</title>
-  <style>
-    :root {
-      --bg: #ffffff;
-      --text: #000000;
-      --btn: #eeeeee;
-      --btn-hover: #dddddd;
-    }
-
-    body.dark {
-      --bg: #222;
-      --text: #ffffff;
-      --btn: #333333;
-      --btn-hover: #444444;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      height: 100vh;
-      padding-top: 40px;
-      margin: 0;
-    }
-
-    .calculator {
-      background: var(--bg);
-      padding: 20px;
-      border-radius: 12px;
-      width: 320px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    }
-
-    #display {
-      width: 100%;
-      height: 50px;
-      font-size: 22px;
-      margin-bottom: 10px;
-      text-align: right;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background: #fff;
-      color: #000;
-    }
-
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
-    button {
-      height: 50px;
-      font-size: 18px;
-      border: none;
-      background: var(--btn);
-      color: var(--text);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    button:hover {
-      background: var(--btn-hover);
-    }
-
-    .operator {
-      background: #ff9800;
-      color: white;
-    }
-
-    .equal {
-      background: #4caf50;
-      color: white;
-    }
-
-    .clear {
-      background: #f44336;
-      color: white;
-    }
-
-    .theme-toggle {
-      margin-bottom: 10px;
-      cursor: pointer;
-      text-align: center;
-    }
-
-    .history {
-      margin-top: 15px;
-      background: #f0f0f0;
-      padding: 10px;
-      height: 100px;
-      overflow-y: auto;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-
-    body.dark .history {
-      background: #333;
-      color: white;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaarigar3D - Custom Furniture Designer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        #header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        #logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        #main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        #toolbar {
+            width: 60px;
+            background-color: #34495e;
+            padding: 10px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .tool-button {
+            width: 40px;
+            height: 40px;
+            margin: 5px 0;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+        }
+        
+        .tool-button.active {
+            background-color: #3498db;
+        }
+        
+        #viewer-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        #viewer {
+            width: 100%;
+            height: 100%;
+        }
+        
+        #properties-panel {
+            width: 300px;
+            background-color: #ecf0f1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .property-group {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 10px;
+        }
+        
+        .property-group h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        
+        .property-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        select, input {
+            padding: 5px;
+            border-radius: 3px;
+            border: 1px solid #bdc3c7;
+        }
+        
+        #status-bar {
+            background-color: #2c3e50;
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        #unit-selector {
+            background-color: #34495e;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 5px;
+        }
+        
+        #language-selector {
+            background-color: #34495e;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 5px;
+            margin-left: 10px;
+        }
+    </style>
 </head>
 <body>
-
-  <div class="calculator">
-    <div class="theme-toggle" onclick="toggleTheme()">🌙 Toggle Theme</div>
-    <input type="text" id="display" disabled>
-    <div class="buttons">
-      <button class="clear" onclick="clearDisplay()">C</button>
-      <button onclick="backspace()">⌫</button>
-      <button onclick="appendValue('%')">%</button>
-      <button class="operator" onclick="appendValue('/')">÷</button>
-
-      <button onclick="appendValue('7')">7</button>
-      <button onclick="appendValue('8')">8</button>
-      <button onclick="appendValue('9')">9</button>
-      <button class="operator" onclick="appendValue('*')">×</button>
-
-      <button onclick="appendValue('4')">4</button>
-      <button onclick="appendValue('5')">5</button>
-      <button onclick="appendValue('6')">6</button>
-      <button class="operator" onclick="appendValue('-')">−</button>
-
-      <button onclick="appendValue('1')">1</button>
-      <button onclick="appendValue('2')">2</button>
-      <button onclick="appendValue('3')">3</button>
-      <button class="operator" onclick="appendValue('+')">+</button>
-
-      <button onclick="appendValue('0')">0</button>
-      <button onclick="appendValue('.')">.</button>
-      <button class="equal" onclick="calculate()">=</button>
-      <button onclick="appendValue('**2')">x²</button>
-
-      <button onclick="appendValue('Math.sqrt(')">√</button>
-      <button onclick="appendValue('Math.sin(')">sin</button>
-      <button onclick="appendValue('Math.cos(')">cos</button>
-      <button onclick="appendValue('Math.tan(')">tan</button>
+    <div id="header">
+        <div id="logo">
+            <img src="https://via.placeholder.com/40" alt="Kaarigar3D Logo">
+            <span>Kaarigar3D</span>
+        </div>
+        <div>
+            <button id="new-project-btn">New Project</button>
+            <button id="save-btn">Save</button>
+            <button id="export-btn">Export</button>
+        </div>
+    </div>
+    
+    <div id="main-container">
+        <div id="toolbar">
+            <button class="tool-button active" title="Select" data-tool="select">✥</button>
+            <button class="tool-button" title="Rectangle" data-tool="rectangle">▯</button>
+            <button class="tool-button" title="Circle" data-tool="circle">○</button>
+            <button class="tool-button" title="Line" data-tool="line">∕</button>
+            <button class="tool-button" title="Push/Pull" data-tool="pushpull">⇳</button>
+            <button class="tool-button" title="Move" data-tool="move">↑</button>
+            <button class="tool-button" title="Rotate" data-tool="rotate">↻</button>
+            <button class="tool-button" title="Scale" data-tool="scale">⇲</button>
+            <button class="tool-button" title="Material" data-tool="material">◑</button>
+            <button class="tool-button" title="Measure" data-tool="measure">📏</button>
+        </div>
+        
+        <div id="viewer-container">
+            <canvas id="viewer"></canvas>
+        </div>
+        
+        <div id="properties-panel">
+            <div class="property-group">
+                <h3>Object Properties</h3>
+                <div class="property-row">
+                    <label>Name:</label>
+                    <input type="text" id="object-name" value="Untitled">
+                </div>
+                <div class="property-row">
+                    <label>Position X:</label>
+                    <input type="number" id="pos-x" value="0">
+                </div>
+                <div class="property-row">
+                    <label>Position Y:</label>
+                    <input type="number" id="pos-y" value="0">
+                </div>
+                <div class="property-row">
+                    <label>Position Z:</label>
+                    <input type="number" id="pos-z" value="0">
+                </div>
+                <div class="property-row">
+                    <label>Rotation:</label>
+                    <input type="number" id="rotation" value="0">
+                </div>
+                <div class="property-row">
+                    <label>Width:</label>
+                    <input type="number" id="width" value="100">
+                </div>
+                <div class="property-row">
+                    <label>Height:</label>
+                    <input type="number" id="height" value="100">
+                </div>
+                <div class="property-row">
+                    <label>Depth:</label>
+                    <input type="number" id="depth" value="100">
+                </div>
+            </div>
+            
+            <div class="property-group">
+                <h3>Material</h3>
+                <div class="property-row">
+                    <label>Color:</label>
+                    <input type="color" id="material-color" value="#cccccc">
+                </div>
+                <div class="property-row">
+                    <label>Texture:</label>
+                    <select id="material-texture">
+                        <option value="none">None</option>
+                        <option value="wood1">Wood Grain 1</option>
+                        <option value="wood2">Wood Grain 2</option>
+                        <option value="marble">Marble</option>
+                        <option value="metal">Metal</option>
+                    </select>
+                </div>
+                <div class="property-row">
+                    <label>Texture Scale:</label>
+                    <input type="number" id="texture-scale" value="1" min="0.1" step="0.1">
+                </div>
+                <button id="upload-texture-btn">Upload Texture</button>
+            </div>
+            
+            <div class="property-group">
+                <h3>Edge Options</h3>
+                <div class="property-row">
+                    <label>Round Corners:</label>
+                    <input type="checkbox" id="round-corners">
+                </div>
+                <div class="property-row">
+                    <label>Corner Radius:</label>
+                    <input type="number" id="corner-radius" value="5" min="0" disabled>
+                </div>
+                <div class="property-row">
+                    <label>Chamfer Edges:</label>
+                    <input type="checkbox" id="chamfer-edges">
+                </div>
+                <div class="property-row">
+                    <label>Chamfer Size:</label>
+                    <input type="number" id="chamfer-size" value="5" min="0" disabled>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="status-bar">
+        <div>
+            <span id="coordinates">X: 0, Y: 0, Z: 0</span>
+        </div>
+        <div>
+            <select id="unit-selector">
+                <option value="mm">Millimeters (mm)</option>
+                <option value="cm">Centimeters (cm)</option>
+                <option value="in">Inches (in)</option>
+                <option value="ft">Feet (ft)</option>
+            </select>
+            <select id="language-selector">
+                <option value="en">English</option>
+                <option value="hi">हिंदी</option>
+                <option value="ur">اردو</option>
+            </select>
+            <span>Powered by Abdul Rahman</span>
+        </div>
     </div>
 
-    <div class="history" id="history">History:</div>
-  </div>
-
-  <script>
-    let isDark = false;
-
-    function appendValue(val) {
-      document.getElementById("display").value += val;
-    }
-
-    function clearDisplay() {
-      document.getElementById("display").value = "";
-    }
-
-    function backspace() {
-      let disp = document.getElementById("display");
-      disp.value = disp.value.slice(0, -1);
-    }
-
-    function calculate() {
-      let exp = document.getElementById("display").value;
-      try {
-        let result = eval(exp);
-        document.getElementById("history").innerHTML += `<div>${exp} = ${result}</div>`;
-        document.getElementById("display").value = result;
-      } catch (e) {
-        alert("Invalid Expression");
-      }
-    }
-
-    function toggleTheme() {
-      isDark = !isDark;
-      document.body.classList.toggle("dark", isDark);
-    }
-  </script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script>
+        // Initialize Three.js scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf0f0f0);
+        
+        // Set up camera
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(5, 5, 5);
+        camera.lookAt(0, 0, 0);
+        
+        // Set up renderer
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('viewer'), antialias: true });
+        renderer.setSize(window.innerWidth - 360, window.innerHeight - 60);
+        
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+        
+        // Add grid helper
+        const gridHelper = new THREE.GridHelper(10, 10);
+        scene.add(gridHelper);
+        
+        // Add orbit controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+        
+        // Add axes helper
+        const axesHelper = new THREE.AxesHelper(5);
+        scene.add(axesHelper);
+        
+        // Sample furniture piece
+        const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const boxMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+        const box = new THREE.Mesh(boxGeometry, boxMaterial);
+        scene.add(box);
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = (window.innerWidth - 360) / (window.innerHeight - 60);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth - 360, window.innerHeight - 60);
+        });
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // Tool selection
+        const toolButtons = document.querySelectorAll('.tool-button');
+        toolButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                toolButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                const tool = button.dataset.tool;
+                console.log(`Selected tool: ${tool}`);
+                // Implement tool functionality here
+            });
+        });
+        
+        // Unit selection
+        const unitSelector = document.getElementById('unit-selector');
+        unitSelector.addEventListener('change', (e) => {
+            console.log(`Selected unit: ${e.target.value}`);
+            // Implement unit conversion here
+        });
+        
+        // Language selection
+        const languageSelector = document.getElementById('language-selector');
+        languageSelector.addEventListener('change', (e) => {
+            console.log(`Selected language: ${e.target.value}`);
+            // Implement language change here
+        });
+        
+        // Material color change
+        const materialColor = document.getElementById('material-color');
+        materialColor.addEventListener('input', (e) => {
+            box.material.color.setHex(parseInt(e.target.value.substring(1), 16));
+        });
+        
+        // Texture selection
+        const materialTexture = document.getElementById('material-texture');
+        materialTexture.addEventListener('change', (e) => {
+            console.log(`Selected texture: ${e.target.value}`);
+            // Implement texture loading here
+        });
+        
+        // Upload texture button
+        document.getElementById('upload-texture-btn').addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const texture = new THREE.TextureLoader().load(event.target.result);
+                        box.material.map = texture;
+                        box.material.needsUpdate = true;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        });
+        
+        // New project button
+        document.getElementById('new-project-btn').addEventListener('click', () => {
+            if (confirm('Start a new project? Any unsaved changes will be lost.')) {
+                // Clear the scene and start fresh
+                while(scene.children.length > 0) { 
+                    scene.remove(scene.children[0]); 
+                }
+                // Re-add lights and helpers
+                scene.add(ambientLight);
+                scene.add(directionalLight);
+                scene.add(gridHelper);
+                scene.add(axesHelper);
+            }
+        });
+        
+        // Save button
+        document.getElementById('save-btn').addEventListener('click', () => {
+            console.log('Save project');
+            // Implement save functionality here
+        });
+        
+        // Export button
+        document.getElementById('export-btn').addEventListener('click', () => {
+            console.log('Export project');
+            // Implement export functionality here
+        });
+        
+        // Round corners checkbox
+        document.getElementById('round-corners').addEventListener('change', (e) => {
+            const radiusInput = document.getElementById('corner-radius');
+            radiusInput.disabled = !e.target.checked;
+            if (e.target.checked) {
+                console.log(`Round corners with radius: ${radiusInput.value}`);
+                // Implement rounded corners here
+            } else {
+                console.log('Disable rounded corners');
+                // Remove rounded corners
+            }
+        });
+        
+        // Chamfer edges checkbox
+        document.getElementById('chamfer-edges').addEventListener('change', (e) => {
+            const sizeInput = document.getElementById('chamfer-size');
+            sizeInput.disabled = !e.target.checked;
+            if (e.target.checked) {
+                console.log(`Chamfer edges with size: ${sizeInput.value}`);
+                // Implement chamfer edges here
+            } else {
+                console.log('Disable chamfer edges');
+                // Remove chamfer edges
+            }
+        });
+    </script>
 </body>
 </html>
