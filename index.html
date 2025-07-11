@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kaarigar3D</title>
+    <title>Kaarigar3D - Functional</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -52,9 +51,6 @@
             font-size: 24px;
             width: 40px;
             height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         /* Main Content */
@@ -70,7 +66,16 @@
         #canvas-container {
             width: 100%;
             height: 100%;
-            background: #e0e0e0;
+        }
+
+        .active-tool {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.8);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
         }
 
         /* Toolbar */
@@ -93,17 +98,6 @@
             margin-right: 16px;
         }
 
-        .tool-group-title {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 4px;
-        }
-
-        .tool-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
         .tool-btn {
             width: 56px;
             height: 56px;
@@ -115,12 +109,6 @@
             align-items: center;
             justify-content: center;
             font-size: 12px;
-            color: #333;
-        }
-
-        .tool-btn .icon {
-            font-size: 20px;
-            margin-bottom: 4px;
         }
 
         .tool-btn.active {
@@ -139,20 +127,16 @@
             display: none;
         }
 
-        .context-menu-item {
+        .context-item {
             padding: 12px 16px;
             border-bottom: 1px solid #eee;
-        }
-
-        .context-menu-item:last-child {
-            border-bottom: none;
         }
 
         /* Side Panel */
         .side-panel {
             position: fixed;
             top: 56px;
-            right: -300px;
+            right: -280px;
             bottom: 72px;
             width: 280px;
             background: white;
@@ -164,118 +148,20 @@
         }
 
         .side-panel.open {
-            transform: translateX(-300px);
-        }
-
-        .panel-section {
-            margin-bottom: 20px;
-        }
-
-        .panel-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #2c3e50;
-        }
-
-        /* Color Picker */
-        .color-picker {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+            transform: translateX(-280px);
         }
 
         .color-option {
             width: 40px;
             height: 40px;
             border-radius: 4px;
+            margin: 4px;
+            display: inline-block;
             border: 2px solid transparent;
         }
 
         .color-option.selected {
             border-color: #3498db;
-        }
-
-        /* Recent Projects */
-        .recent-projects {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .project-card {
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .project-thumbnail {
-            height: 100px;
-            background: #e0e0e0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-        }
-
-        .project-info {
-            padding: 8px;
-        }
-
-        .project-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .project-date {
-            font-size: 12px;
-            color: #666;
-        }
-
-        /* Home Screen */
-        .home-screen {
-            position: fixed;
-            top: 56px;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            padding: 16px;
-            overflow-y: auto;
-            z-index: 200;
-        }
-
-        .new-project-btn {
-            position: fixed;
-            bottom: 88px;
-            right: 16px;
-            width: 56px;
-            height: 56px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 24px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            z-index: 300;
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 480px) {
-            .side-panel {
-                width: 85%;
-            }
-            
-            .tool-btn {
-                width: 48px;
-                height: 48px;
-                font-size: 11px;
-            }
-            
-            .tool-btn .icon {
-                font-size: 18px;
-            }
         }
     </style>
 </head>
@@ -289,220 +175,98 @@
     <!-- Main Content -->
     <div class="main-content">
         <div id="canvas-container"></div>
-        <div id="active-tool" style="position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.8); padding: 5px 10px; border-radius: 4px; font-size: 14px;"></div>
+        <div class="active-tool" id="activeTool">Select a tool</div>
         
         <!-- Context Menu -->
         <div class="context-menu" id="contextMenu">
-            <div class="context-menu-item" data-action="group">Group</div>
-            <div class="context-menu-item" data-action="ungroup">Ungroup</div>
-            <div class="context-menu-item" data-action="hide">Hide</div>
-            <div class="context-menu-item" data-action="unhide">Unhide</div>
-            <div class="context-menu-item" data-action="component">Convert to Component</div>
-            <div class="context-menu-item" data-action="explode">Explode</div>
-            <div class="context-menu-item" data-action="delete">Delete</div>
+            <div class="context-item" data-action="group">Group</div>
+            <div class="context-item" data-action="ungroup">Ungroup</div>
+            <div class="context-item" data-action="hide">Hide</div>
+            <div class="context-item" data-action="unhide">Unhide</div>
+            <div class="context-item" data-action="component">Convert to Component</div>
+            <div class="context-item" data-action="explode">Explode</div>
+            <div class="context-item" data-action="delete">Delete</div>
         </div>
         
         <!-- Side Panel -->
         <div class="side-panel" id="sidePanel">
-            <div class="panel-section">
-                <div class="panel-title">Material</div>
-                <div class="color-picker">
-                    <div class="color-option selected" style="background: #cccccc;" data-color="#cccccc"></div>
-                    <div class="color-option" style="background: #8B4513;" data-color="#8B4513"></div>
-                    <div class="color-option" style="background: #A0522D;" data-color="#A0522D"></div>
-                    <div class="color-option" style="background: #D2B48C;" data-color="#D2B48C"></div>
-                    <div class="color-option" style="background: #708090;" data-color="#708090"></div>
-                    <div class="color-option" style="background: #4682B4;" data-color="#4682B4"></div>
-                </div>
+            <h3>Material</h3>
+            <div>
+                <div class="color-option selected" style="background:#cccccc;" data-color="#cccccc"></div>
+                <div class="color-option" style="background:#8B4513;" data-color="#8B4513"></div>
+                <div class="color-option" style="background:#A0522D;" data-color="#A0522D"></div>
+                <div class="color-option" style="background:#D2B48C;" data-color="#D2B48C"></div>
             </div>
             
-            <div class="panel-section">
-                <div class="panel-title">Texture</div>
-                <button class="tool-btn" style="width: 100%; margin-bottom: 8px;">
-                    <span class="icon">🖼️</span>
-                    <span>Import Texture</span>
-                </button>
-                <div style="margin-bottom: 8px;">
-                    <div>Scale: 100%</div>
-                    <input type="range" min="10" max="200" value="100" style="width: 100%;">
-                </div>
-                <div>
-                    <div>Rotation: 0°</div>
-                    <input type="range" min="0" max="360" value="0" style="width: 100%;">
-                </div>
-            </div>
-            
-            <div class="panel-section">
-                <div class="panel-title">Units</div>
-                <div style="display: flex; gap: 8px;">
-                    <button class="tool-btn active" data-unit="mm">mm</button>
-                    <button class="tool-btn" data-unit="cm">cm</button>
-                    <button class="tool-btn" data-unit="in">inch</button>
-                    <button class="tool-btn" data-unit="ft">feet</button>
-                </div>
-            </div>
-            
-            <div class="panel-section">
-                <div class="panel-title">Recent Projects</div>
-                <div class="recent-projects" id="recentProjects">
-                    <!-- Projects will be added here dynamically -->
-                </div>
-            </div>
-        </div>
-        
-        <!-- Home Screen -->
-        <div class="home-screen" id="homeScreen">
-            <h2 style="margin-bottom: 16px;">Your Creations</h2>
-            <div class="recent-projects" id="homeProjects">
-                <!-- Projects will be added here dynamically -->
+            <h3 style="margin-top:20px;">Units</h3>
+            <div>
+                <button class="tool-btn active" data-unit="mm">mm</button>
+                <button class="tool-btn" data-unit="cm">cm</button>
+                <button class="tool-btn" data-unit="in">inch</button>
+                <button class="tool-btn" data-unit="ft">feet</button>
             </div>
         </div>
     </div>
-
-    <!-- New Project Button -->
-    <button class="new-project-btn" id="newProjectBtn">+</button>
 
     <!-- Toolbar -->
     <div class="toolbar">
         <!-- Draw Tools -->
         <div class="tool-group">
-            <div class="tool-group-title">Draw</div>
-            <div class="tool-buttons">
-                <button class="tool-btn" data-tool="line">
-                    <span class="icon">📏</span>
-                    <span>Line</span>
-                </button>
-                <button class="tool-btn" data-tool="rectangle">
-                    <span class="icon">⬛</span>
-                    <span>Rect</span>
-                </button>
-                <button class="tool-btn" data-tool="circle">
-                    <span class="icon">⚪</span>
-                    <span>Circle</span>
-                </button>
-                <button class="tool-btn" data-tool="arc">
-                    <span class="icon">⌒</span>
-                    <span>Arc</span>
-                </button>
-                <button class="tool-btn" data-tool="polygon">
-                    <span class="icon">🔶</span>
-                    <span>Polygon</span>
-                </button>
+            <div class="tool-btn" data-tool="line">
+                <span>📏</span>
+                <span>Line</span>
+            </div>
+            <div class="tool-btn" data-tool="rectangle">
+                <span>⬛</span>
+                <span>Rect</span>
+            </div>
+            <div class="tool-btn" data-tool="circle">
+                <span>⚪</span>
+                <span>Circle</span>
             </div>
         </div>
         
         <!-- Modify Tools -->
         <div class="tool-group">
-            <div class="tool-group-title">Modify</div>
-            <div class="tool-buttons">
-                <button class="tool-btn" data-tool="pushpull">
-                    <span class="icon">⇳</span>
-                    <span>Push/Pull</span>
-                </button>
-                <button class="tool-btn" data-tool="move">
-                    <span class="icon">↑</span>
-                    <span>Move</span>
-                </button>
-                <button class="tool-btn" data-tool="rotate">
-                    <span class="icon">↻</span>
-                    <span>Rotate</span>
-                </button>
-                <button class="tool-btn" data-tool="scale">
-                    <span class="icon">⇲</span>
-                    <span>Scale</span>
-                </button>
-                <button class="tool-btn" data-tool="mirror">
-                    <span class="icon">🔄</span>
-                    <span>Mirror</span>
-                </button>
+            <div class="tool-btn" data-tool="pushpull">
+                <span>⇳</span>
+                <span>Push/Pull</span>
             </div>
-        </div>
-        
-        <!-- Measurement -->
-        <div class="tool-group">
-            <div class="tool-group-title">Measure</div>
-            <div class="tool-buttons">
-                <button class="tool-btn" data-tool="ruler">
-                    <span class="icon">📐</span>
-                    <span>Ruler</span>
-                </button>
-                <button class="tool-btn" data-tool="dimension">
-                    <span class="icon">📏</span>
-                    <span>Dimension</span>
-                </button>
-                <button class="tool-btn" data-tool="protractor">
-                    <span class="icon">∠</span>
-                    <span>Protractor</span>
-                </button>
-                <button class="tool-btn" data-tool="area">
-                    <span class="icon">▣</span>
-                    <span>Area</span>
-                </button>
+            <div class="tool-btn" data-tool="move">
+                <span>↑</span>
+                <span>Move</span>
             </div>
-        </div>
-        
-        <!-- View Tools -->
-        <div class="tool-group">
-            <div class="tool-group-title">View</div>
-            <div class="tool-buttons">
-                <button class="tool-btn" data-tool="orbit">
-                    <span class="icon">👁️</span>
-                    <span>Orbit</span>
-                </button>
-                <button class="tool-btn" data-tool="pan">
-                    <span class="icon">✋</span>
-                    <span>Pan</span>
-                </button>
-                <button class="tool-btn" data-tool="zoomin">
-                    <span class="icon">🔍</span>
-                    <span>Zoom In</span>
-                </button>
-                <button class="tool-btn" data-tool="zoomout">
-                    <span class="icon">🔎</span>
-                    <span>Zoom Out</span>
-                </button>
+            <div class="tool-btn" data-tool="rotate">
+                <span>↻</span>
+                <span>Rotate</span>
             </div>
         </div>
         
         <!-- Object Tools -->
         <div class="tool-group">
-            <div class="tool-group-title">Object</div>
-            <div class="tool-buttons">
-                <button class="tool-btn" data-tool="group">
-                    <span class="icon">📦</span>
-                    <span>Group</span>
-                </button>
-                <button class="tool-btn" data-tool="ungroup">
-                    <span class="icon">📦</span>
-                    <span>Ungroup</span>
-                </button>
-                <button class="tool-btn" data-tool="duplicate">
-                    <span class="icon">⎘</span>
-                    <span>Duplicate</span>
-                </button>
-                <button class="tool-btn" data-tool="delete">
-                    <span class="icon">🗑️</span>
-                    <span>Delete</span>
-                </button>
+            <div class="tool-btn" data-tool="group">
+                <span>📦</span>
+                <span>Group</span>
+            </div>
+            <div class="tool-btn" data-tool="ungroup">
+                <span>📦</span>
+                <span>Ungroup</span>
+            </div>
+            <div class="tool-btn" data-tool="delete">
+                <span>🗑️</span>
+                <span>Delete</span>
             </div>
         </div>
         
         <!-- File Tools -->
         <div class="tool-group">
-            <div class="tool-group-title">File</div>
-            <div class="tool-buttons">
-                <button class="tool-btn" data-tool="save">
-                    <span class="icon">💾</span>
-                    <span>Save</span>
-                </button>
-                <button class="tool-btn" data-tool="load">
-                    <span class="icon">📂</span>
-                    <span>Load</span>
-                </button>
-                <button class="tool-btn" data-tool="export">
-                    <span class="icon">📤</span>
-                    <span>Export</span>
-                </button>
+            <div class="tool-btn" data-tool="save">
+                <span>💾</span>
+                <span>Save</span>
+            </div>
+            <div class="tool-btn" data-tool="load">
+                <span>📂</span>
+                <span>Load</span>
             </div>
         </div>
     </div>
@@ -513,26 +277,24 @@
             activeTool: null,
             selectedObject: null,
             selectedFace: null,
+            drawing: false,
+            tempObject: null,
+            startPoint: null,
             unit: 'mm',
-            projects: [],
-            currentProject: null,
             scene: null,
             camera: null,
             renderer: null,
             controls: null,
             raycaster: new THREE.Raycaster(),
-            pointer: new THREE.Vector2()
+            pointer: new THREE.Vector2(),
+            objects: []
         };
 
         // DOM Elements
         const menuBtn = document.getElementById('menuBtn');
         const sidePanel = document.getElementById('sidePanel');
-        const newProjectBtn = document.getElementById('newProjectBtn');
-        const homeScreen = document.getElementById('homeScreen');
-        const activeToolDisplay = document.getElementById('active-tool');
+        const activeTool = document.getElementById('activeTool');
         const contextMenu = document.getElementById('contextMenu');
-        const recentProjects = document.getElementById('recentProjects');
-        const homeProjects = document.getElementById('homeProjects');
         const toolBtns = document.querySelectorAll('.tool-btn[data-tool]');
         const colorOptions = document.querySelectorAll('.color-option');
         const unitBtns = document.querySelectorAll('.tool-btn[data-unit]');
@@ -541,7 +303,7 @@
         function initScene() {
             // Create scene
             state.scene = new THREE.Scene();
-            state.scene.background = new THREE.Color(0xe0e0e0);
+            state.scene.background = new THREE.Color(0xf0f0f0);
 
             // Create camera
             state.camera = new THREE.PerspectiveCamera(75, window.innerWidth / (window.innerHeight - 128), 0.1, 1000);
@@ -569,10 +331,6 @@
             const gridHelper = new THREE.GridHelper(10, 10);
             state.scene.add(gridHelper);
 
-            // Add axes helper
-            const axesHelper = new THREE.AxesHelper(5);
-            state.scene.add(axesHelper);
-
             // Animation loop
             function animate() {
                 requestAnimationFrame(animate);
@@ -592,7 +350,7 @@
         // Tool Functions
         function selectTool(tool) {
             state.activeTool = tool;
-            activeToolDisplay.textContent = `Active Tool: ${tool}`;
+            activeTool.textContent = `Active: ${tool}`;
             
             // Update active button
             toolBtns.forEach(btn => {
@@ -601,26 +359,46 @@
                     btn.classList.add('active');
                 }
             });
+        }
 
-            // Implement tool functionality
-            switch(tool) {
-                case 'line':
-                    // Line tool implementation
-                    break;
-                case 'rectangle':
-                    // Rectangle tool implementation
-                    break;
-                case 'pushpull':
-                    // Push/Pull tool implementation
-                    break;
-                // Add cases for all other tools
-            }
+        // Object Creation
+        function createLine(start, end) {
+            const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+            const material = new THREE.LineBasicMaterial({ color: 0x000000 });
+            const line = new THREE.Line(geometry, material);
+            state.scene.add(line);
+            state.objects.push(line);
+            return line;
+        }
+
+        function createRectangle(width, height, position) {
+            const geometry = new THREE.PlaneGeometry(width, height);
+            const material = new THREE.MeshBasicMaterial({ 
+                color: 0xcccccc,
+                side: THREE.DoubleSide
+            });
+            const rect = new THREE.Mesh(geometry, material);
+            rect.position.copy(position);
+            state.scene.add(rect);
+            state.objects.push(rect);
+            return rect;
+        }
+
+        function createCircle(radius, position) {
+            const geometry = new THREE.CircleGeometry(radius, 32);
+            const material = new THREE.MeshBasicMaterial({ 
+                color: 0xcccccc,
+                side: THREE.DoubleSide
+            });
+            const circle = new THREE.Mesh(geometry, material);
+            circle.position.copy(position);
+            state.scene.add(circle);
+            state.objects.push(circle);
+            return circle;
         }
 
         // Object Selection
-        function handleObjectSelection(event) {
-            event.preventDefault();
-            
+        function getIntersectedObject(event) {
             // Calculate pointer position
             state.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
             state.pointer.y = - (event.clientY / (window.innerHeight - 128)) * 2 + 1;
@@ -629,29 +407,127 @@
             state.raycaster.setFromCamera(state.pointer, state.camera);
             
             // Check for intersections
-            const intersects = state.raycaster.intersectObjects(state.scene.children, true);
+            const intersects = state.raycaster.intersectObjects(state.objects);
             
             if (intersects.length > 0) {
-                const intersect = intersects[0];
-                
-                // Single tap - select face
-                if (!event.detail || event.detail === 1) {
-                    state.selectedFace = intersect.face;
-                    state.selectedObject = intersect.object;
-                    
-                    // Highlight selected face
-                    // (Implementation depends on your Three.js setup)
-                    
-                } 
-                // Double tap - show context menu for object
-                else if (event.detail === 2) {
-                    state.selectedObject = intersect.object;
-                    showContextMenu(event.clientX, event.clientY);
+                return intersects[0].object;
+            }
+            return null;
+        }
+
+        function handleCanvasClick(event) {
+            if (!state.activeTool) return;
+
+            const intersected = getIntersectedObject(event);
+            
+            // Single click - select object or start drawing
+            if (event.detail === 1) {
+                if (state.drawing) {
+                    // Continue drawing
+                    handleDrawing(event);
+                } else if (intersected) {
+                    // Select object
+                    state.selectedObject = intersected;
+                    highlightObject(intersected);
+                } else {
+                    // Start drawing
+                    startDrawing(event);
                 }
+            } 
+            // Double click - show context menu
+            else if (event.detail === 2 && intersected) {
+                showContextMenu(event.clientX, event.clientY, intersected);
             }
         }
 
-        function showContextMenu(x, y) {
+        function highlightObject(obj) {
+            // Remove previous highlights
+            state.scene.children.forEach(child => {
+                if (child.userData.isHighlighted) {
+                    child.material.emissive.setHex(child.userData.originalEmissive);
+                    delete child.userData.isHighlighted;
+                }
+            });
+
+            // Add highlight to selected object
+            if (obj.material && obj.material.emissive) {
+                obj.userData.originalEmissive = obj.material.emissive.getHex();
+                obj.material.emissive.setHex(0x888888);
+                obj.userData.isHighlighted = true;
+            }
+        }
+
+        // Drawing Functions
+        function startDrawing(event) {
+            if (!state.activeTool) return;
+
+            state.drawing = true;
+            const pos = getCanvasPosition(event);
+            state.startPoint = pos;
+
+            switch(state.activeTool) {
+                case 'line':
+                    state.tempObject = createLine(pos, pos);
+                    break;
+                case 'rectangle':
+                    state.tempObject = createRectangle(0.1, 0.1, pos);
+                    break;
+                case 'circle':
+                    state.tempObject = createCircle(0.1, pos);
+                    break;
+            }
+        }
+
+        function handleDrawing(event) {
+            if (!state.drawing || !state.tempObject) return;
+
+            const pos = getCanvasPosition(event);
+
+            switch(state.activeTool) {
+                case 'line':
+                    // Update line end point
+                    state.tempObject.geometry.attributes.position.setXYZ(1, pos.x, pos.y, pos.z);
+                    state.tempObject.geometry.attributes.position.needsUpdate = true;
+                    break;
+                case 'rectangle':
+                    // Update rectangle size
+                    const width = Math.abs(pos.x - state.startPoint.x);
+                    const height = Math.abs(pos.y - state.startPoint.y);
+                    state.tempObject.scale.set(width * 10, height * 10, 1);
+                    break;
+                case 'circle':
+                    // Update circle radius
+                    const radius = Math.sqrt(
+                        Math.pow(pos.x - state.startPoint.x, 2) + 
+                        Math.pow(pos.y - state.startPoint.y, 2)
+                    );
+                    state.tempObject.scale.set(radius * 10, radius * 10, 1);
+                    break;
+            }
+        }
+
+        function endDrawing() {
+            state.drawing = false;
+            state.tempObject = null;
+            state.startPoint = null;
+        }
+
+        function getCanvasPosition(event) {
+            state.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+            state.pointer.y = - (event.clientY / (window.innerHeight - 128)) * 2 + 1;
+            state.raycaster.setFromCamera(state.pointer, state.camera);
+            
+            // Create a plane at z=0 for drawing
+            const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+            const intersection = new THREE.Vector3();
+            state.raycaster.ray.intersectPlane(plane, intersection);
+            
+            return intersection;
+        }
+
+        // Context Menu
+        function showContextMenu(x, y, obj) {
+            state.selectedObject = obj;
             contextMenu.style.display = 'block';
             contextMenu.style.left = `${x}px`;
             contextMenu.style.top = `${y}px`;
@@ -661,22 +537,17 @@
             contextMenu.style.display = 'none';
         }
 
-        // Context Menu Actions
-        function handleContextMenuAction(action) {
+        function handleContextAction(action) {
+            if (!state.selectedObject) return;
+
             switch(action) {
                 case 'group':
                     // Group selected objects
-                    break;
-                case 'ungroup':
-                    // Ungroup selected object
-                    break;
-                case 'hide':
-                    // Hide selected object
-                    state.selectedObject.visible = false;
+                    alert('Group functionality would be implemented here');
                     break;
                 case 'delete':
-                    // Delete selected object
                     state.scene.remove(state.selectedObject);
+                    state.objects = state.objects.filter(obj => obj !== state.selectedObject);
                     break;
                 // Add other actions
             }
@@ -685,7 +556,7 @@
 
         // Material Functions
         function selectColor(color) {
-            if (state.selectedObject) {
+            if (state.selectedObject && state.selectedObject.material) {
                 state.selectedObject.material.color.setHex(parseInt(color.substring(1), 16));
             }
         }
@@ -693,9 +564,6 @@
         // Unit System
         function selectUnit(unit) {
             state.unit = unit;
-            localStorage.setItem('kaarigarUnit', unit);
-            
-            // Update active button
             unitBtns.forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.unit === unit) {
@@ -704,76 +572,24 @@
             });
         }
 
-        // Project Management
+        // File Operations
         function saveProject() {
             const project = {
-                id: Date.now(),
-                name: `Project ${state.projects.length + 1}`,
-                date: new Date().toLocaleString(),
-                unit: state.unit,
-                data: JSON.stringify(state.scene.toJSON())
+                date: new Date().toISOString(),
+                objects: state.objects.length,
+                unit: state.unit
             };
-            
-            state.projects.unshift(project);
-            if (state.projects.length > 5) {
-                state.projects.pop();
-            }
-            
-            localStorage.setItem('kaarigarProjects', JSON.stringify(state.projects));
-            updateProjectsList();
+            localStorage.setItem('kaarigarProject', JSON.stringify(project));
+            alert('Project saved!');
         }
 
-        function loadProject(projectId) {
-            const project = state.projects.find(p => p.id === projectId);
+        function loadProject() {
+            const project = localStorage.getItem('kaarigarProject');
             if (project) {
-                const loader = new THREE.ObjectLoader();
-                state.scene = loader.parse(JSON.parse(project.data));
-                state.unit = project.unit || 'mm';
-                updateUnitButtons();
+                alert('Loaded project with ' + JSON.parse(project).objects + ' objects');
+            } else {
+                alert('No saved project found');
             }
-        }
-
-        function updateProjectsList() {
-            recentProjects.innerHTML = '';
-            homeProjects.innerHTML = '';
-            
-            state.projects.forEach(project => {
-                const projectEl = document.createElement('div');
-                projectEl.className = 'project-card';
-                projectEl.innerHTML = `
-                    <div class="project-thumbnail">${project.name}</div>
-                    <div class="project-info">
-                        <div class="project-name">${project.name}</div>
-                        <div class="project-date">${project.date}</div>
-                    </div>
-                `;
-                projectEl.addEventListener('click', () => {
-                    loadProject(project.id);
-                    homeScreen.classList.add('hidden');
-                });
-                
-                recentProjects.appendChild(projectEl.cloneNode(true));
-                homeProjects.appendChild(projectEl.cloneNode(true));
-            });
-        }
-
-        function updateUnitButtons() {
-            unitBtns.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.unit === state.unit) {
-                    btn.classList.add('active');
-                }
-            });
-        }
-
-        // Screenshot
-        function takeScreenshot() {
-            html2canvas(document.getElementById('canvas-container')).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `kaarigar-${new Date().toISOString()}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-            });
         }
 
         // Event Listeners
@@ -781,11 +597,6 @@
             // Menu button
             menuBtn.addEventListener('click', () => {
                 sidePanel.classList.toggle('open');
-            });
-
-            // New project button
-            newProjectBtn.addEventListener('click', () => {
-                homeScreen.classList.toggle('hidden');
             });
 
             // Tool buttons
@@ -812,44 +623,28 @@
             });
 
             // Context menu items
-            document.querySelectorAll('.context-menu-item').forEach(item => {
+            document.querySelectorAll('.context-item').forEach(item => {
                 item.addEventListener('click', () => {
-                    handleContextMenuAction(item.dataset.action);
+                    handleContextAction(item.dataset.action);
                 });
             });
 
             // Canvas interactions
-            state.renderer.domElement.addEventListener('click', handleObjectSelection);
-            state.renderer.domElement.addEventListener('dblclick', handleObjectSelection);
+            state.renderer.domElement.addEventListener('click', handleCanvasClick);
+            state.renderer.domElement.addEventListener('mousemove', handleDrawing);
+            state.renderer.domElement.addEventListener('mouseup', endDrawing);
             document.addEventListener('click', hideContextMenu);
 
             // File operations
             document.querySelector('[data-tool="save"]').addEventListener('click', saveProject);
-            document.querySelector('[data-tool="export"]').addEventListener('click', takeScreenshot);
+            document.querySelector('[data-tool="load"]').addEventListener('click', loadProject);
         }
 
         // Initialize App
         function init() {
             initScene();
-            
-            // Load saved unit preference
-            const savedUnit = localStorage.getItem('kaarigarUnit');
-            if (savedUnit) {
-                state.unit = savedUnit;
-            }
-            
-            // Load saved projects
-            const savedProjects = localStorage.getItem('kaarigarProjects');
-            if (savedProjects) {
-                state.projects = JSON.parse(savedProjects);
-            }
-            
-            updateProjectsList();
-            updateUnitButtons();
             setupEventListeners();
-            
-            // Start with home screen visible
-            homeScreen.classList.remove('hidden');
+            selectTool('line'); // Start with line tool selected
         }
 
         // Start the app
