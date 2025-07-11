@@ -36,6 +36,7 @@
             justify-content: space-between;
             align-items: center;
             height: 50px;
+            flex-shrink: 0;
         }
         
         #logo {
@@ -129,15 +130,16 @@
         
         #properties-panel {
             position: fixed;
-            top: 0;
+            top: 50px;
             right: -300px;
             width: 280px;
-            height: 100vh;
+            height: calc(100vh - 80px);
             background-color: #ecf0f1;
             padding: 15px;
             overflow-y: auto;
             z-index: 200;
             transition: transform 0.3s ease;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.2);
         }
         
         #properties-panel.open {
@@ -159,6 +161,7 @@
         .property-row {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 8px;
             font-size: 14px;
         }
@@ -168,6 +171,17 @@
             border-radius: 3px;
             border: 1px solid #bdc3c7;
             font-size: 14px;
+            width: 120px;
+        }
+        
+        input[type="number"] {
+            text-align: right;
+        }
+        
+        input[type="color"] {
+            height: 30px;
+            width: 60px;
+            padding: 2px;
         }
         
         #status-bar {
@@ -178,6 +192,7 @@
             display: flex;
             justify-content: space-between;
             height: 30px;
+            flex-shrink: 0;
         }
         
         #unit-selector, #language-selector {
@@ -202,6 +217,15 @@
             height: 40px;
             font-size: 20px;
             z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Selection highlight */
+        .selected-object {
+            outline: 2px solid #3498db;
+            outline-offset: 2px;
         }
         
         /* Mobile-specific optimizations */
@@ -213,12 +237,16 @@
             }
             
             #properties-panel {
-                width: 85vw;
-                right: -85vw;
+                width: 90vw;
+                right: -90vw;
             }
             
             #properties-panel.open {
-                transform: translateX(-85vw);
+                transform: translateX(-90vw);
+            }
+            
+            select, input {
+                width: 100px;
             }
         }
     </style>
@@ -258,19 +286,31 @@
                     <h3>Object Properties</h3>
                     <div class="property-row">
                         <label>Name:</label>
-                        <input type="text" id="object-name" value="Untitled">
+                        <input type="text" id="object-name" value="Cabinet">
                     </div>
                     <div class="property-row">
                         <label>Width:</label>
-                        <input type="number" id="width" value="100">
+                        <input type="number" id="width" value="100" min="1" step="1">
                     </div>
                     <div class="property-row">
                         <label>Height:</label>
-                        <input type="number" id="height" value="100">
+                        <input type="number" id="height" value="100" min="1" step="1">
                     </div>
                     <div class="property-row">
                         <label>Depth:</label>
-                        <input type="number" id="depth" value="100">
+                        <input type="number" id="depth" value="100" min="1" step="1">
+                    </div>
+                    <div class="property-row">
+                        <label>Position X:</label>
+                        <input type="number" id="pos-x" value="0" step="1">
+                    </div>
+                    <div class="property-row">
+                        <label>Position Y:</label>
+                        <input type="number" id="pos-y" value="0" step="1">
+                    </div>
+                    <div class="property-row">
+                        <label>Position Z:</label>
+                        <input type="number" id="pos-z" value="0" step="1">
                     </div>
                 </div>
                 
@@ -299,7 +339,7 @@
                     </div>
                     <div class="property-row">
                         <label>Radius:</label>
-                        <input type="number" id="corner-radius" value="5" min="0" disabled>
+                        <input type="number" id="corner-radius" value="5" min="0" step="1" disabled>
                     </div>
                 </div>
                 
@@ -330,14 +370,13 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TouchControls.js"></script>
     <script>
         // Initialize Three.js scene
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xf0f0f0);
         
         // Set up camera
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / (window.innerHeight - 80), 0.1, 1000);
         camera.position.set(2, 2, 2);
         camera.lookAt(0, 0, 0);
         
@@ -347,7 +386,7 @@
             antialias: true,
             powerPreference: "low-power"
         });
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit to 2x for performance
         renderer.setSize(window.innerWidth, window.innerHeight - 80);
         
         // Add lights
@@ -367,30 +406,85 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.25;
         controls.screenSpacePanning = true;
-        controls.enableZoom = true;
-        controls.enableRotate = true;
-        controls.enablePan = true;
         
-        // For better touch handling
-        controls.touchZoom = true;
-        controls.touchRotate = true;
-        controls.touchPan = true;
+        // Current selected object
+        let selectedObject = null;
         
-        // Sample furniture piece
-        const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-        const boxMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0xcccccc,
-            roughness: 0.7,
-            metalness: 0.1
-        });
-        const box = new THREE.Mesh(boxGeometry, boxMaterial);
-        scene.add(box);
+        // Create a sample cabinet
+        function createCabinet(width, height, depth) {
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: 0xcccccc,
+                roughness: 0.7,
+                metalness: 0.1
+            });
+            const cabinet = new THREE.Mesh(geometry, material);
+            cabinet.userData.isSelectable = true;
+            return cabinet;
+        }
+        
+        // Add cabinet to scene
+        const cabinet = createCabinet(1, 1, 1);
+        scene.add(cabinet);
+        selectObject(cabinet);
+        
+        // Function to select an object
+        function selectObject(object) {
+            // Deselect current object
+            if (selectedObject) {
+                selectedObject.remove(selectedObject.userData.outline);
+                scene.add(selectedObject);
+            }
+            
+            // Select new object
+            selectedObject = object;
+            
+            if (object && object.userData.isSelectable) {
+                // Add outline effect
+                const outlineGeometry = new THREE.BoxGeometry(
+                    object.scale.x * 1.05, 
+                    object.scale.y * 1.05, 
+                    object.scale.z * 1.05
+                );
+                const outlineMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0x3498db, 
+                    side: THREE.BackSide 
+                });
+                const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
+                object.add(outline);
+                object.userData.outline = outline;
+                
+                // Update properties panel
+                updatePropertiesPanel();
+            }
+        }
+        
+        // Update properties panel with selected object's values
+        function updatePropertiesPanel() {
+            if (!selectedObject) return;
+            
+            document.getElementById('object-name').value = selectedObject.name || 'Cabinet';
+            document.getElementById('width').value = selectedObject.scale.x * 100;
+            document.getElementById('height').value = selectedObject.scale.y * 100;
+            document.getElementById('depth').value = selectedObject.scale.z * 100;
+            document.getElementById('pos-x').value = selectedObject.position.x;
+            document.getElementById('pos-y').value = selectedObject.position.y;
+            document.getElementById('pos-z').value = selectedObject.position.z;
+            
+            if (selectedObject.material.color) {
+                const color = selectedObject.material.color;
+                document.getElementById('material-color').value = `#${color.getHexString()}`;
+            }
+        }
         
         // Handle window resize
         function onWindowResize() {
-            camera.aspect = window.innerWidth / (window.innerHeight - 80);
+            const height = window.innerHeight - 80;
+            const width = window.innerWidth;
+            
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight - 80);
+            renderer.setSize(width, height);
         }
         
         window.addEventListener('resize', onWindowResize);
@@ -402,9 +496,11 @@
             renderer.render(scene, camera);
             
             // Update coordinates display
-            const pos = box.position;
-            document.getElementById('coordinates').textContent = 
-                `X:${pos.x.toFixed(1)}, Y:${pos.y.toFixed(1)}, Z:${pos.z.toFixed(1)}`;
+            if (selectedObject) {
+                const pos = selectedObject.position;
+                document.getElementById('coordinates').textContent = 
+                    `X:${pos.x.toFixed(1)}, Y:${pos.y.toFixed(1)}, Z:${pos.z.toFixed(1)}`;
+            }
         }
         animate();
         
@@ -420,10 +516,10 @@
                 button.style.transform = 'scale(0.9)';
                 setTimeout(() => { button.style.transform = 'scale(1)'; }, 100);
                 
-                console.log(`Selected tool: ${tool}`);
-                
-                // Show appropriate UI for the tool
-                if (tool === 'pushpull') {
+                // Tool-specific behaviors
+                if (tool === 'select') {
+                    alert('Tap on any object to select it');
+                } else if (tool === 'pushpull') {
                     alert('Tap a face to push/pull. Pinch to adjust distance.');
                 } else if (tool === 'measure') {
                     alert('Tap two points to measure distance between them.');
@@ -434,6 +530,7 @@
         // Menu button to show properties panel
         document.getElementById('menu-btn').addEventListener('click', () => {
             document.getElementById('properties-panel').classList.add('open');
+            updatePropertiesPanel();
         });
         
         // Close properties panel
@@ -441,113 +538,40 @@
             document.getElementById('properties-panel').classList.remove('open');
         });
         
-        // Unit selection
-        const unitSelector = document.getElementById('unit-selector');
-        unitSelector.addEventListener('change', (e) => {
-            const unit = e.target.value;
-            alert(`Measurement units changed to ${unit}. All dimensions will now display in ${unit}.`);
-            // Implement unit conversion here
-        });
-        
-        // Language selection
-        const languageSelector = document.getElementById('language-selector');
-        languageSelector.addEventListener('change', (e) => {
-            const lang = e.target.value;
-            const languages = { en: 'English', hi: 'Hindi', ur: 'Urdu' };
-            alert(`Language will be changed to ${languages[lang]} on next launch.`);
-            // Implement language change here
-        });
-        
-        // Material color change
-        const materialColor = document.getElementById('material-color');
-        materialColor.addEventListener('input', (e) => {
-            box.material.color.setHex(parseInt(e.target.value.substring(1), 16));
-        });
-        
-        // Texture selection
-        const materialTexture = document.getElementById('material-texture');
-        materialTexture.addEventListener('change', (e) => {
-            const textureName = e.target.value;
-            if (textureName === 'none') {
-                box.material.map = null;
-            } else {
-                // In a real app, you'd load proper textures
-                const texture = new THREE.TextureLoader().load(`textures/${textureName}.jpg`);
-                box.material.map = texture;
-            }
-            box.material.needsUpdate = true;
-        });
-        
-        // Upload texture button
-        document.getElementById('upload-texture-btn').addEventListener('click', () => {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const texture = new THREE.TextureLoader().load(event.target.result);
-                        box.material.map = texture;
-                        box.material.needsUpdate = true;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-            input.click();
-        });
-        
-        // New project button
-        document.getElementById('new-project-btn').addEventListener('click', () => {
-            if (confirm('Start a new project? Any unsaved changes will be lost.')) {
-                // Clear the scene and start fresh
-                while(scene.children.length > 0) { 
-                    scene.remove(scene.children[0]); 
-                }
-                // Re-add lights and helpers
-                scene.add(ambientLight);
-                scene.add(directionalLight);
-                scene.add(gridHelper);
+        // Property change handlers for live updates
+        document.getElementById('width').addEventListener('input', (e) => {
+            if (selectedObject) {
+                selectedObject.scale.x = parseFloat(e.target.value) / 100;
+                updateOutline();
             }
         });
         
-        // Save button
-        document.getElementById('save-btn').addEventListener('click', () => {
-            alert('Project saved to device storage.');
-            // Implement actual save functionality here
-        });
-        
-        // Round corners checkbox
-        document.getElementById('round-corners').addEventListener('change', (e) => {
-            const radiusInput = document.getElementById('corner-radius');
-            radiusInput.disabled = !e.target.checked;
-            if (e.target.checked) {
-                // In a real app, you'd modify the geometry
-                alert(`Corners rounded with radius: ${radiusInput.value}`);
+        document.getElementById('height').addEventListener('input', (e) => {
+            if (selectedObject) {
+                selectedObject.scale.y = parseFloat(e.target.value) / 100;
+                updateOutline();
             }
         });
         
-        // Touch event handling for mobile
-        let touchStartTime = 0;
-        renderer.domElement.addEventListener('touchstart', (e) => {
-            touchStartTime = Date.now();
-            // Prevent default to avoid browser touch behaviors
-            if (e.touches.length === 1) e.preventDefault();
-        }, { passive: false });
-        
-        renderer.domElement.addEventListener('touchend', (e) => {
-            // Handle single tap (not part of a long press or multi-touch)
-            if (e.touches.length === 0 && Date.now() - touchStartTime < 300) {
-                // Implement tap-to-select functionality
-                console.log('Tap detected - implement object selection');
+        document.getElementById('depth').addEventListener('input', (e) => {
+            if (selectedObject) {
+                selectedObject.scale.z = parseFloat(e.target.value) / 100;
+                updateOutline();
             }
         });
         
-        // Disable context menu on long press
-        renderer.domElement.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
+        document.getElementById('pos-x').addEventListener('input', (e) => {
+            if (selectedObject) {
+                selectedObject.position.x = parseFloat(e.target.value);
+            }
         });
-    </script>
-</body>
-</html>
+        
+        document.getElementById('pos-y').addEventListener('input', (e) => {
+            if (selectedObject) {
+                selectedObject.position.y = parseFloat(e.target.value);
+            }
+        });
+        
+        document.getElementById('pos-z').addEventListener('input', (e) => {
+            if (selectedObject) {
+                selectedObject.
