@@ -636,6 +636,16 @@ canvas.addEventListener("mouseup", (e) => {
         ctx.strokeRect(startX, startY, width, height);
     }
 });
+  const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+// Fix canvas size on load and resize
+function resizeCanvas() {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
     </script>
 </body>
 </html>
