@@ -128,6 +128,31 @@
       } else if (currentTool === "Clear") {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
-    });
+    });canvas.addEventListener("mousedown", (e) => {
+    if (!currentTool) return;
+    isDrawing = true;
+    const rect = canvas.getBoundingClientRect();
+    startX = e.clientX - rect.left;
+    startY = e.clientY - rect.top;
+});
+
+canvas.addEventListener("mouseup", (e) => {
+    if (!isDrawing) return;
+    isDrawing = false;
+    const rect = canvas.getBoundingClientRect();
+    const endX = e.clientX - rect.left;
+    const endY = e.clientY - rect.top;
+
+    if (currentTool === "Line") {
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+    } else if (currentTool === "Rectangle") {
+        const width = endX - startX;
+        const height = endY - startY;
+        ctx.strokeRect(startX, startY, width, height);
+    }
+});
   </script></body>
 </html>
