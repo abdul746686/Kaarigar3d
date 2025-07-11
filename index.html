@@ -2,68 +2,109 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Simple Calculator</title>
+  <title>Advanced Calculator</title>
   <style>
+    :root {
+      --bg: #ffffff;
+      --text: #000000;
+      --btn: #eeeeee;
+      --btn-hover: #dddddd;
+    }
+
+    body.dark {
+      --bg: #222;
+      --text: #ffffff;
+      --btn: #333333;
+      --btn-hover: #444444;
+    }
+
     body {
-      background: #f0f0f0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       height: 100vh;
+      padding-top: 40px;
       margin: 0;
-      font-family: Arial, sans-serif;
     }
 
     .calculator {
-      background: white;
+      background: var(--bg);
       padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      width: 320px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
     }
 
     #display {
       width: 100%;
       height: 50px;
-      font-size: 24px;
+      font-size: 22px;
       margin-bottom: 10px;
       text-align: right;
       padding: 10px;
-      border: 1px solid #ccc;
       border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #000;
     }
 
     .buttons {
       display: grid;
-      grid-template-columns: repeat(4, 60px);
-      grid-gap: 10px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
     }
 
-    .buttons button {
-      height: 60px;
-      font-size: 20px;
+    button {
+      height: 50px;
+      font-size: 18px;
       border: none;
-      background: #eee;
+      background: var(--btn);
+      color: var(--text);
       border-radius: 8px;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: 0.2s;
     }
 
-    .buttons button:hover {
-      background: #ddd;
+    button:hover {
+      background: var(--btn-hover);
     }
 
-    .buttons .operator {
-      background: #f9a825;
+    .operator {
+      background: #ff9800;
       color: white;
     }
 
-    .buttons .equal {
+    .equal {
       background: #4caf50;
       color: white;
     }
 
-    .buttons .clear {
+    .clear {
       background: #f44336;
+      color: white;
+    }
+
+    .theme-toggle {
+      margin-bottom: 10px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .history {
+      margin-top: 15px;
+      background: #f0f0f0;
+      padding: 10px;
+      height: 100px;
+      overflow-y: auto;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    body.dark .history {
+      background: #333;
       color: white;
     }
   </style>
@@ -71,36 +112,46 @@
 <body>
 
   <div class="calculator">
+    <div class="theme-toggle" onclick="toggleTheme()">🌙 Toggle Theme</div>
     <input type="text" id="display" disabled>
     <div class="buttons">
-      <button onclick="clearDisplay()" class="clear">C</button>
-      <button onclick="appendValue('(')">(</button>
-      <button onclick="appendValue(')')">)</button>
-      <button onclick="appendValue('/') " class="operator">÷</button>
+      <button class="clear" onclick="clearDisplay()">C</button>
+      <button onclick="backspace()">⌫</button>
+      <button onclick="appendValue('%')">%</button>
+      <button class="operator" onclick="appendValue('/')">÷</button>
 
       <button onclick="appendValue('7')">7</button>
       <button onclick="appendValue('8')">8</button>
       <button onclick="appendValue('9')">9</button>
-      <button onclick="appendValue('*')" class="operator">×</button>
+      <button class="operator" onclick="appendValue('*')">×</button>
 
       <button onclick="appendValue('4')">4</button>
       <button onclick="appendValue('5')">5</button>
       <button onclick="appendValue('6')">6</button>
-      <button onclick="appendValue('-')" class="operator">−</button>
+      <button class="operator" onclick="appendValue('-')">−</button>
 
       <button onclick="appendValue('1')">1</button>
       <button onclick="appendValue('2')">2</button>
       <button onclick="appendValue('3')">3</button>
-      <button onclick="appendValue('+')" class="operator">+</button>
+      <button class="operator" onclick="appendValue('+')">+</button>
 
       <button onclick="appendValue('0')">0</button>
       <button onclick="appendValue('.')">.</button>
-      <button onclick="calculate()" class="equal">=</button>
-      <button onclick="backspace()">⌫</button>
+      <button class="equal" onclick="calculate()">=</button>
+      <button onclick="appendValue('**2')">x²</button>
+
+      <button onclick="appendValue('Math.sqrt(')">√</button>
+      <button onclick="appendValue('Math.sin(')">sin</button>
+      <button onclick="appendValue('Math.cos(')">cos</button>
+      <button onclick="appendValue('Math.tan(')">tan</button>
     </div>
+
+    <div class="history" id="history">History:</div>
   </div>
 
   <script>
+    let isDark = false;
+
     function appendValue(val) {
       document.getElementById("display").value += val;
     }
@@ -109,17 +160,25 @@
       document.getElementById("display").value = "";
     }
 
+    function backspace() {
+      let disp = document.getElementById("display");
+      disp.value = disp.value.slice(0, -1);
+    }
+
     function calculate() {
+      let exp = document.getElementById("display").value;
       try {
-        document.getElementById("display").value = eval(document.getElementById("display").value);
+        let result = eval(exp);
+        document.getElementById("history").innerHTML += `<div>${exp} = ${result}</div>`;
+        document.getElementById("display").value = result;
       } catch (e) {
         alert("Invalid Expression");
       }
     }
 
-    function backspace() {
-      let current = document.getElementById("display").value;
-      document.getElementById("display").value = current.slice(0, -1);
+    function toggleTheme() {
+      isDark = !isDark;
+      document.body.classList.toggle("dark", isDark);
     }
   </script>
 
