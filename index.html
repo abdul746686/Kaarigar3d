@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Untitled</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Kaarigar3D - Furniture Design</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
+
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <header class="app-header">
+
+            <div class="logo">Kaarigar3D</div>
+
+            <div class="menu-btn" id="mainMenuBtn">☰</div>
+
+        </header>
+
+        <div class="canvas-container" id="canvasContainer">
+
+            <!-- 3D canvas will be inserted here by JavaScript -->
+
+        </div>
+
+        <div class="toolbar" id="mainToolbar">
+
+            <div class="tool-section">
+
+                <button class="tool-btn active" data-tool="select" title="Select Tool">
+
+                    <span class="icon">✏️</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="move" title="Move">
+
+                    <span class="icon">↔️</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="rotate" title="Rotate">
+
+                    <span class="icon">🔄</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="scale" title="Scale">
+
+                    <span class="icon">📏</span>
+
+                </button>
+
+            </div>
+
+            <div class="tool-section">
+
+                <button class="tool-btn" data-tool="line" title="Line">
+
+                    <span class="icon">📏</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="rectangle" title="Rectangle">
+
+                    <span class="icon">⬛</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="circle" title="Circle">
+
+                    <span class="icon">⭕</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="arc" title="Arc">
+
+                    <span class="icon">⌒</span>
+
+                </button>
+
+            </div>
+
+            <div class="tool-section">
+
+                <button class="tool-btn" data-tool="pushpull" title="Push/Pull">
+
+                    <span class="icon">↕️</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="paint" title="Paint Bucket">
+
+                    <span class="icon">🎨</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="eyedropper" title="Eyedropper">
+
+                    <span class="icon">💧</span>
+
+                </button>
+
+                <button class="tool-btn" id="moreToolsBtn" title="More Tools">
+
+                    <span class="icon">⋯</span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- More Tools Panel (hidden by default) -->
+
+        <div class="more-tools-panel" id="moreToolsPanel">
+
+            <div class="tools-grid">
+
+                <!-- View Tools -->
+
+                <button class="tool-btn" data-tool="orbit" title="Orbit">
+
+                    <span class="icon">🌍</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="pan" title="Pan">
+
+                    <span class="icon">✋</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="zoomin" title="Zoom In">
+
+                    <span class="icon">➕</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="zoomout" title="Zoom Out">
+
+                    <span class="icon">➖</span>
+
+                </button>
+
+                <!-- Measure Tools -->
+
+                <button class="tool-btn" data-tool="ruler" title="Ruler">
+
+                    <span class="icon">📐</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="dimension" title="Dimension">
+
+                    <span class="icon">📏</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="protractor" title="Protractor">
+
+                    <span class="icon">📐</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="area" title="Area">
+
+                    <span class="icon">🔲</span>
+
+                </button>
+
+                <!-- Edit Tools -->
+
+                <button class="tool-btn" data-tool="group" title="Group">
+
+                    <span class="icon">👥</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="ungroup" title="Ungroup">
+
+                    <span class="icon">👤</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="duplicate" title="Duplicate">
+
+                    <span class="icon">✂️</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="delete" title="Delete">
+
+                    <span class="icon">🗑️</span>
+
+                </button>
+
+                <!-- File Tools -->
+
+                <button class="tool-btn" data-tool="save" title="Save">
+
+                    <span class="icon">💾</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="export" title="Export">
+
+                    <span class="icon">📤</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="load" title="Load">
+
+                    <span class="icon">📥</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="screenshot" title="Screenshot">
+
+                    <span class="icon">📷</span>
+
+                </button>
+
+                <!-- Other Tools -->
+
+                <button class="tool-btn" data-tool="text" title="Add Text">
+
+                    <span class="icon">🔤</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="image" title="Add Image">
+
+                    <span class="icon">🖼️</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="grid" title="Toggle Grid">
+
+                    <span class="icon">#️⃣</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="snap" title="Snap to Grid">
+
+                    <span class="icon">🧲</span>
+
+                </button>
+
+                <!-- Advanced Tools -->
+
+                <button class="tool-btn" data-tool="component" title="Convert to Component">
+
+                    <span class="icon">🧩</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="explode" title="Explode">
+
+                    <span class="icon">💥</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="hide" title="Hide">
+
+                    <span class="icon">👁️</span>
+
+                </button>
+
+                <button class="tool-btn" data-tool="unhide" title="Unhide">
+
+                    <span class="icon">👁️‍🗨️</span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- Context Menu (appears when object is selected) -->
+
+        <div class="context-menu" id="contextMenu">
+
+            <div class="context-menu-header">
+
+                <span>Object Options</span>
+
+                <button class="close-btn" id="closeContextMenu">×</button>
+
+            </div>
+
+            <div class="context-menu-items">
+
+                <button data-action="group">Group</button>
+
+                <button data-action="ungroup">Ungroup</button>
+
+                <button data-action="hide">Hide</button>
+
+                <button data-action="unhide">Unhide</button>
+
+                <button data-action="component">Convert to Component</button>
+
+                <button data-action="explode">Explode</button>
+
+                <button data-action="duplicate">Duplicate</button>
+
+                <button data-action="delete">Delete</button>
+
+            </div>
+
+        </div>
+
+        <!-- Material Panel (appears when paint bucket is selected) -->
+
+        <div class="material-panel" id="materialPanel">
+
+            <div class="material-panel-header">
+
+                <span>Materials</span>
+
+                <button class="close-btn" id="closeMaterialPanel">×</button>
+
+            </div>
+
+            <div class="material-grid">
+
+                <div class="material-item" data-color="#ffffff" style="background-color: #ffffff;"></div>
+
+                <div class="material-item" data-color="#f5f5f5" style="background-color: #f5f5f5;"></div>
+
+                <div class="material-item" data-color="#e0e0e0" style="background-color: #e0e0e0;"></div>
+
+                <div class="material-item" data-color="#bdbdbd" style="background-color: #bdbdbd;"></div>
+
+                <div class="material-item" data-color="#9e9e9e" style="background-color: #9e9e9e;"></div>
+
+                <div class="material-item" data-color="#757575" style="background-color: #757575;"></div>
+
+                <div class="material-item" data-color="#616161" style="background-color: #616161;"></div>
+
+                <div class="material-item" data-color="#424242" style="background-color: #424242;"></div>
+
+                <div class="material-item" data-color="#212121" style="background-color: #212121;"></div>
+
+                <div class="material-item" data-color="#f44336" style="background-color: #f44336;"></div>
+
+                <div class="material-item" data-color="#e91e63" style="background-color: #e91e63;"></div>
+
+                <div class="material-item" data-color="#9c27b0" style="background-color: #9c27b0;"></div>
+
+                <div class="material-item" data-color="#673ab7" style="background-color: #673ab7;"></div>
+
+                <div class="material-item" data-color="#3f51b5" style="background-color: #3f51b5;"></div>
+
+                <div class="material-item" data-color="#2196f3" style="background-color: #2196f3;"></div>
+
+                <div class="material-item" data-color="#03a9f4" style="background-color: #03a9f4;"></div>
+
+                <div class="material-item" data-color="#00bcd4" style="background-color: #00bcd4;"></div>
+
+                <div class="material-item" data-color="#009688" style="background-color: #009688;"></div>
+
+                <div class="material-item" data-color="#4caf50" style="background-color: #4caf50;"></div>
+
+                <div class="material-item" data-color="#8bc34a" style="background-color: #8bc34a;"></div>
+
+                <div class="material-item" data-color="#cddc39" style="background-color: #cddc39;"></div>
+
+                <div class="material-item" data-color="#ffeb3b" style="background-color: #ffeb3b;"></div>
+
+                <div class="material-item" data-color="#ffc107" style="background-color: #ffc107;"></div>
+
+                <div class="material-item" data-color="#ff9800" style="background-color: #ff9800;"></div>
+
+                <div class="material-item" data-color="#ff5722" style="background-color: #ff5722;"></div>
+
+                <div class="material-item" data-color="#795548" style="background-color: #795548;"></div>
+
+                <div class="material-item" data-color="#607d8b" style="background-color: #607d8b;"></div>
+
+                <div class="material-item" data-color="#9e9e9e" style="background-color: #9e9e9e;"></div>
+
+                <div class="material-item" data-color="#000000" style="background-color: #000000;"></div>
+
+            </div>
+
+            <div class="texture-options">
+
+                <button class="texture-btn" data-texture="wood">Wood</button>
+
+                <button class="texture-btn" data-texture="metal">Metal</button>
+
+                <button class="texture-btn" data-texture="fabric">Fabric</button>
+
+                <button class="texture-btn" data-texture="glass">Glass</button>
+
+                <button class="texture-btn" data-texture="stone">Stone</button>
+
+            </div>
+
+        </div>
+
+        <!-- Main Menu (appears when menu button is clicked) -->
+
+        <div class="main-menu" id="mainMenu">
+
+            <div class="menu-header">
+
+                <span>Menu</span>
+
+                <button class="close-btn" id="closeMainMenu">×</button>
+
+            </div>
+
+            <div class="menu-items">
+
+                <button id="newProjectBtn">New Project</button>
+
+                <button id="openProjectBtn">Open Project</button>
+
+                <button id="saveProjectBtn">Save Project</button>
+
+                <button id="exportProjectBtn">Export as Image</button>
+
+                <button id="helpBtn">Help & Tutorials</button>
+
+                <button id="settingsBtn">Settings</button>
+
+            </div>
+
+        </div>
+
+        <!-- Modal Dialogs -->
+
+        <div class="modal" id="saveModal">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <span>Save Project</span>
+
+                    <button class="close-btn" id="closeSaveModal">×</button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="text" id="projectName" placeholder="Project Name">
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button id="confirmSave">Save</button>
+
+                    <button id="cancelSave">Cancel</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="modal" id="loadModal">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <span>Load Project</span>
+
+                    <button class="close-btn" id="closeLoadModal">×</button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="project-list" id="projectList">
+
+                        <!-- Projects will be listed here -->
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button id="cancelLoad">Cancel</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
+<!-- partial -->
+  <script  src="./script.js"></script>
+
+</body>
+</html>
