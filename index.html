@@ -1,234 +1,859 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaarigar3D - Furniture Designer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kaarigar3D</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --bg: #f8f9fa;
-            --card-bg: #ffffff;
-            --text: #333333;
-            --border: #e0e0e0;
-        }
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent;
-        }
-        body {
             font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
         }
+
+        body {
+            background: #f5f5f5;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* Header */
         .header {
-            background-color: var(--primary);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: #2c3e50;
             color: white;
-            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 56px;
-            flex-shrink: 0;
+            padding: 0 16px;
+            z-index: 100;
         }
+
         .app-title {
             font-size: 18px;
             font-weight: 600;
         }
-        .powered-by {
-            font-size: 12px;
-            opacity: 0.8;
-        }
+
         .menu-btn {
             background: none;
             border: none;
             color: white;
-            font-size: 20px;
-            width: 32px;
-            height: 32px;
-        }
-        .main-content {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
             display: flex;
-            flex: 1;
-            overflow: hidden;
-            position: relative;
-        }
-        .canvas-container {
-            flex: 1;
-            background-color: #e9ecef;
-            display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            position: relative;
         }
-        #canvas {
+
+        /* Main Content */
+        .main-content {
+            position: fixed;
+            top: 56px;
+            bottom: 72px;
+            left: 0;
+            right: 0;
+            overflow: hidden;
+        }
+
+        #canvas-container {
             width: 100%;
             height: 100%;
+            background: #e0e0e0;
         }
-        .canvas-placeholder {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #6c757d;
-            font-size: 18px;
-            text-align: center;
-        }
-        .active-tool-display {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 14px;
-        }
+
+        /* Toolbar */
         .toolbar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background-color: var(--card-bg);
-            border-top: 1px solid var(--border);
-            padding: 8px;
             height: 72px;
+            background: white;
+            border-top: 1px solid #ddd;
             overflow-x: auto;
             white-space: nowrap;
-            z-index: 5;
+            padding: 8px;
+            z-index: 100;
         }
+
         .tool-group {
             display: inline-block;
             margin-right: 16px;
         }
+
         .tool-group-title {
             font-size: 12px;
-            color: #6c757d;
+            color: #666;
             margin-bottom: 4px;
         }
+
         .tool-buttons {
             display: flex;
             gap: 8px;
         }
+
         .tool-btn {
-            width: 48px;
-            height: 48px;
-            background-color: white;
-            border: 1px solid var(--border);
+            width: 56px;
+            height: 56px;
+            background: white;
+            border: 1px solid #ddd;
             border-radius: 8px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             font-size: 12px;
-            color: var(--text);
-            text-align: center;
-            padding: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            color: #333;
         }
+
         .tool-btn .icon {
-            font-size: 18px;
-            margin-bottom: 2px;
+            font-size: 20px;
+            margin-bottom: 4px;
         }
+
         .tool-btn.active {
-            border-color: var(--secondary);
-            color: var(--secondary);
-            background-color: rgba(52, 152, 219, 0.1);
+            border-color: #3498db;
+            color: #3498db;
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: absolute;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 200;
+            display: none;
+        }
+
+        .context-menu-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .context-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Side Panel */
+        .side-panel {
+            position: fixed;
+            top: 56px;
+            right: -300px;
+            bottom: 72px;
+            width: 280px;
+            background: white;
+            border-left: 1px solid #ddd;
+            padding: 16px;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 150;
+        }
+
+        .side-panel.open {
+            transform: translateX(-300px);
+        }
+
+        .panel-section {
+            margin-bottom: 20px;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2c3e50;
+        }
+
+        /* Color Picker */
+        .color-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            border: 2px solid transparent;
+        }
+
+        .color-option.selected {
+            border-color: #3498db;
+        }
+
+        /* Recent Projects */
+        .recent-projects {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .project-thumbnail {
+            height: 100px;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .project-info {
+            padding: 8px;
+        }
+
+        .project-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .project-date {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Home Screen */
+        .home-screen {
+            position: fixed;
+            top: 56px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 16px;
+            overflow-y: auto;
+            z-index: 200;
+        }
+
+        .new-project-btn {
+            position: fixed;
+            bottom: 88px;
+            right: 16px;
+            width: 56px;
+            height: 56px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 300;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            .side-panel {
+                width: 85%;
+            }
+            
+            .tool-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 11px;
+            }
+            
+            .tool-btn .icon {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Header -->
     <div class="header">
         <div class="app-title">Kaarigar3D</div>
-        <div class="powered-by">Powered by Abdul Rahman</div>
         <button class="menu-btn" id="menuBtn">⋮</button>
-    </div><div class="main-content">
-    <div class="canvas-container">
-        <div class="active-tool-display" id="activeTool">No tool selected</div>
-        <div class="canvas-placeholder" id="canvasPlaceholder">3D View Area</div>
-        <canvas id="canvas"></canvas>
     </div>
-</div>
 
-<div class="toolbar">
-    <div class="tool-group">
-        <div class="tool-group-title">Draw</div>
-        <div class="tool-buttons">
-            <button class="tool-btn" data-tool="Line">
-                <span class="icon">📏</span>
-                <span>Line</span>
-            </button>
-            <button class="tool-btn" data-tool="Rectangle">
-                <span class="icon">⬛</span>
-                <span>Rect</span>
-            </button>
-            <button class="tool-btn" data-tool="Clear">
-                <span class="icon">❌</span>
-                <span>Clear</span>
-            </button>
+    <!-- Main Content -->
+    <div class="main-content">
+        <div id="canvas-container"></div>
+        <div id="active-tool" style="position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.8); padding: 5px 10px; border-radius: 4px; font-size: 14px;"></div>
+        
+        <!-- Context Menu -->
+        <div class="context-menu" id="contextMenu">
+            <div class="context-menu-item" data-action="group">Group</div>
+            <div class="context-menu-item" data-action="ungroup">Ungroup</div>
+            <div class="context-menu-item" data-action="hide">Hide</div>
+            <div class="context-menu-item" data-action="unhide">Unhide</div>
+            <div class="context-menu-item" data-action="component">Convert to Component</div>
+            <div class="context-menu-item" data-action="explode">Explode</div>
+            <div class="context-menu-item" data-action="delete">Delete</div>
+        </div>
+        
+        <!-- Side Panel -->
+        <div class="side-panel" id="sidePanel">
+            <div class="panel-section">
+                <div class="panel-title">Material</div>
+                <div class="color-picker">
+                    <div class="color-option selected" style="background: #cccccc;" data-color="#cccccc"></div>
+                    <div class="color-option" style="background: #8B4513;" data-color="#8B4513"></div>
+                    <div class="color-option" style="background: #A0522D;" data-color="#A0522D"></div>
+                    <div class="color-option" style="background: #D2B48C;" data-color="#D2B48C"></div>
+                    <div class="color-option" style="background: #708090;" data-color="#708090"></div>
+                    <div class="color-option" style="background: #4682B4;" data-color="#4682B4"></div>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-title">Texture</div>
+                <button class="tool-btn" style="width: 100%; margin-bottom: 8px;">
+                    <span class="icon">🖼️</span>
+                    <span>Import Texture</span>
+                </button>
+                <div style="margin-bottom: 8px;">
+                    <div>Scale: 100%</div>
+                    <input type="range" min="10" max="200" value="100" style="width: 100%;">
+                </div>
+                <div>
+                    <div>Rotation: 0°</div>
+                    <input type="range" min="0" max="360" value="0" style="width: 100%;">
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-title">Units</div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="tool-btn active" data-unit="mm">mm</button>
+                    <button class="tool-btn" data-unit="cm">cm</button>
+                    <button class="tool-btn" data-unit="in">inch</button>
+                    <button class="tool-btn" data-unit="ft">feet</button>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-title">Recent Projects</div>
+                <div class="recent-projects" id="recentProjects">
+                    <!-- Projects will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Home Screen -->
+        <div class="home-screen" id="homeScreen">
+            <h2 style="margin-bottom: 16px;">Your Creations</h2>
+            <div class="recent-projects" id="homeProjects">
+                <!-- Projects will be added here dynamically -->
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    const toolBtns = document.querySelectorAll(".tool-btn");
-    const activeToolDisplay = document.getElementById("activeTool");
+    <!-- New Project Button -->
+    <button class="new-project-btn" id="newProjectBtn">+</button>
 
-    let currentTool = null;
-    let isDrawing = false;
-    let startX = 0, startY = 0;
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <!-- Draw Tools -->
+        <div class="tool-group">
+            <div class="tool-group-title">Draw</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="line">
+                    <span class="icon">📏</span>
+                    <span>Line</span>
+                </button>
+                <button class="tool-btn" data-tool="rectangle">
+                    <span class="icon">⬛</span>
+                    <span>Rect</span>
+                </button>
+                <button class="tool-btn" data-tool="circle">
+                    <span class="icon">⚪</span>
+                    <span>Circle</span>
+                </button>
+                <button class="tool-btn" data-tool="arc">
+                    <span class="icon">⌒</span>
+                    <span>Arc</span>
+                </button>
+                <button class="tool-btn" data-tool="polygon">
+                    <span class="icon">🔶</span>
+                    <span>Polygon</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Modify Tools -->
+        <div class="tool-group">
+            <div class="tool-group-title">Modify</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="pushpull">
+                    <span class="icon">⇳</span>
+                    <span>Push/Pull</span>
+                </button>
+                <button class="tool-btn" data-tool="move">
+                    <span class="icon">↑</span>
+                    <span>Move</span>
+                </button>
+                <button class="tool-btn" data-tool="rotate">
+                    <span class="icon">↻</span>
+                    <span>Rotate</span>
+                </button>
+                <button class="tool-btn" data-tool="scale">
+                    <span class="icon">⇲</span>
+                    <span>Scale</span>
+                </button>
+                <button class="tool-btn" data-tool="mirror">
+                    <span class="icon">🔄</span>
+                    <span>Mirror</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Measurement -->
+        <div class="tool-group">
+            <div class="tool-group-title">Measure</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="ruler">
+                    <span class="icon">📐</span>
+                    <span>Ruler</span>
+                </button>
+                <button class="tool-btn" data-tool="dimension">
+                    <span class="icon">📏</span>
+                    <span>Dimension</span>
+                </button>
+                <button class="tool-btn" data-tool="protractor">
+                    <span class="icon">∠</span>
+                    <span>Protractor</span>
+                </button>
+                <button class="tool-btn" data-tool="area">
+                    <span class="icon">▣</span>
+                    <span>Area</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- View Tools -->
+        <div class="tool-group">
+            <div class="tool-group-title">View</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="orbit">
+                    <span class="icon">👁️</span>
+                    <span>Orbit</span>
+                </button>
+                <button class="tool-btn" data-tool="pan">
+                    <span class="icon">✋</span>
+                    <span>Pan</span>
+                </button>
+                <button class="tool-btn" data-tool="zoomin">
+                    <span class="icon">🔍</span>
+                    <span>Zoom In</span>
+                </button>
+                <button class="tool-btn" data-tool="zoomout">
+                    <span class="icon">🔎</span>
+                    <span>Zoom Out</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Object Tools -->
+        <div class="tool-group">
+            <div class="tool-group-title">Object</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="group">
+                    <span class="icon">📦</span>
+                    <span>Group</span>
+                </button>
+                <button class="tool-btn" data-tool="ungroup">
+                    <span class="icon">📦</span>
+                    <span>Ungroup</span>
+                </button>
+                <button class="tool-btn" data-tool="duplicate">
+                    <span class="icon">⎘</span>
+                    <span>Duplicate</span>
+                </button>
+                <button class="tool-btn" data-tool="delete">
+                    <span class="icon">🗑️</span>
+                    <span>Delete</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- File Tools -->
+        <div class="tool-group">
+            <div class="tool-group-title">File</div>
+            <div class="tool-buttons">
+                <button class="tool-btn" data-tool="save">
+                    <span class="icon">💾</span>
+                    <span>Save</span>
+                </button>
+                <button class="tool-btn" data-tool="load">
+                    <span class="icon">📂</span>
+                    <span>Load</span>
+                </button>
+                <button class="tool-btn" data-tool="export">
+                    <span class="icon">📤</span>
+                    <span>Export</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-    function resizeCanvas() {
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    <script>
+        // App State
+        const state = {
+            activeTool: null,
+            selectedObject: null,
+            selectedFace: null,
+            unit: 'mm',
+            projects: [],
+            currentProject: null,
+            scene: null,
+            camera: null,
+            renderer: null,
+            controls: null,
+            raycaster: new THREE.Raycaster(),
+            pointer: new THREE.Vector2()
+        };
 
-    toolBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-            toolBtns.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            currentTool = btn.dataset.tool;
-            activeToolDisplay.textContent = `Selected Tool: ${currentTool}`;
-        });
-    });
+        // DOM Elements
+        const menuBtn = document.getElementById('menuBtn');
+        const sidePanel = document.getElementById('sidePanel');
+        const newProjectBtn = document.getElementById('newProjectBtn');
+        const homeScreen = document.getElementById('homeScreen');
+        const activeToolDisplay = document.getElementById('active-tool');
+        const contextMenu = document.getElementById('contextMenu');
+        const recentProjects = document.getElementById('recentProjects');
+        const homeProjects = document.getElementById('homeProjects');
+        const toolBtns = document.querySelectorAll('.tool-btn[data-tool]');
+        const colorOptions = document.querySelectorAll('.color-option');
+        const unitBtns = document.querySelectorAll('.tool-btn[data-unit]');
 
-    canvas.addEventListener("mousedown", (e) => {
-        if (!currentTool) return;
-        isDrawing = true;
-        const rect = canvas.getBoundingClientRect();
-        startX = e.clientX - rect.left;
-        startY = e.clientY - rect.top;
-    });
+        // Initialize Three.js Scene
+        function initScene() {
+            // Create scene
+            state.scene = new THREE.Scene();
+            state.scene.background = new THREE.Color(0xe0e0e0);
 
-    canvas.addEventListener("mouseup", (e) => {
-        if (!isDrawing) return;
-        isDrawing = false;
-        const rect = canvas.getBoundingClientRect();
-        const endX = e.clientX - rect.left;
-        const endY = e.clientY - rect.top;
+            // Create camera
+            state.camera = new THREE.PerspectiveCamera(75, window.innerWidth / (window.innerHeight - 128), 0.1, 1000);
+            state.camera.position.set(5, 5, 5);
+            state.camera.lookAt(0, 0, 0);
 
-        if (currentTool === "Line") {
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(endX, endY);
-            ctx.stroke();
-        } else if (currentTool === "Rectangle") {
-            ctx.strokeRect(startX, startY, endX - startX, endY - startY);
-        } else if (currentTool === "Clear") {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Create renderer
+            state.renderer = new THREE.WebGLRenderer({ antialias: true });
+            state.renderer.setSize(window.innerWidth, window.innerHeight - 128);
+            document.getElementById('canvas-container').appendChild(state.renderer.domElement);
+
+            // Add controls
+            state.controls = new THREE.OrbitControls(state.camera, state.renderer.domElement);
+            state.controls.enableDamping = true;
+
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            state.scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1);
+            state.scene.add(directionalLight);
+
+            // Add grid helper
+            const gridHelper = new THREE.GridHelper(10, 10);
+            state.scene.add(gridHelper);
+
+            // Add axes helper
+            const axesHelper = new THREE.AxesHelper(5);
+            state.scene.add(axesHelper);
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                state.controls.update();
+                state.renderer.render(state.scene, state.camera);
+            }
+            animate();
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                state.camera.aspect = window.innerWidth / (window.innerHeight - 128);
+                state.camera.updateProjectionMatrix();
+                state.renderer.setSize(window.innerWidth, window.innerHeight - 128);
+            });
         }
-    });
-</script>
 
+        // Tool Functions
+        function selectTool(tool) {
+            state.activeTool = tool;
+            activeToolDisplay.textContent = `Active Tool: ${tool}`;
+            
+            // Update active button
+            toolBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tool === tool) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Implement tool functionality
+            switch(tool) {
+                case 'line':
+                    // Line tool implementation
+                    break;
+                case 'rectangle':
+                    // Rectangle tool implementation
+                    break;
+                case 'pushpull':
+                    // Push/Pull tool implementation
+                    break;
+                // Add cases for all other tools
+            }
+        }
+
+        // Object Selection
+        function handleObjectSelection(event) {
+            event.preventDefault();
+            
+            // Calculate pointer position
+            state.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+            state.pointer.y = - (event.clientY / (window.innerHeight - 128)) * 2 + 1;
+            
+            // Update the raycaster
+            state.raycaster.setFromCamera(state.pointer, state.camera);
+            
+            // Check for intersections
+            const intersects = state.raycaster.intersectObjects(state.scene.children, true);
+            
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+                
+                // Single tap - select face
+                if (!event.detail || event.detail === 1) {
+                    state.selectedFace = intersect.face;
+                    state.selectedObject = intersect.object;
+                    
+                    // Highlight selected face
+                    // (Implementation depends on your Three.js setup)
+                    
+                } 
+                // Double tap - show context menu for object
+                else if (event.detail === 2) {
+                    state.selectedObject = intersect.object;
+                    showContextMenu(event.clientX, event.clientY);
+                }
+            }
+        }
+
+        function showContextMenu(x, y) {
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${x}px`;
+            contextMenu.style.top = `${y}px`;
+        }
+
+        function hideContextMenu() {
+            contextMenu.style.display = 'none';
+        }
+
+        // Context Menu Actions
+        function handleContextMenuAction(action) {
+            switch(action) {
+                case 'group':
+                    // Group selected objects
+                    break;
+                case 'ungroup':
+                    // Ungroup selected object
+                    break;
+                case 'hide':
+                    // Hide selected object
+                    state.selectedObject.visible = false;
+                    break;
+                case 'delete':
+                    // Delete selected object
+                    state.scene.remove(state.selectedObject);
+                    break;
+                // Add other actions
+            }
+            hideContextMenu();
+        }
+
+        // Material Functions
+        function selectColor(color) {
+            if (state.selectedObject) {
+                state.selectedObject.material.color.setHex(parseInt(color.substring(1), 16));
+            }
+        }
+
+        // Unit System
+        function selectUnit(unit) {
+            state.unit = unit;
+            localStorage.setItem('kaarigarUnit', unit);
+            
+            // Update active button
+            unitBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.unit === unit) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Project Management
+        function saveProject() {
+            const project = {
+                id: Date.now(),
+                name: `Project ${state.projects.length + 1}`,
+                date: new Date().toLocaleString(),
+                unit: state.unit,
+                data: JSON.stringify(state.scene.toJSON())
+            };
+            
+            state.projects.unshift(project);
+            if (state.projects.length > 5) {
+                state.projects.pop();
+            }
+            
+            localStorage.setItem('kaarigarProjects', JSON.stringify(state.projects));
+            updateProjectsList();
+        }
+
+        function loadProject(projectId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (project) {
+                const loader = new THREE.ObjectLoader();
+                state.scene = loader.parse(JSON.parse(project.data));
+                state.unit = project.unit || 'mm';
+                updateUnitButtons();
+            }
+        }
+
+        function updateProjectsList() {
+            recentProjects.innerHTML = '';
+            homeProjects.innerHTML = '';
+            
+            state.projects.forEach(project => {
+                const projectEl = document.createElement('div');
+                projectEl.className = 'project-card';
+                projectEl.innerHTML = `
+                    <div class="project-thumbnail">${project.name}</div>
+                    <div class="project-info">
+                        <div class="project-name">${project.name}</div>
+                        <div class="project-date">${project.date}</div>
+                    </div>
+                `;
+                projectEl.addEventListener('click', () => {
+                    loadProject(project.id);
+                    homeScreen.classList.add('hidden');
+                });
+                
+                recentProjects.appendChild(projectEl.cloneNode(true));
+                homeProjects.appendChild(projectEl.cloneNode(true));
+            });
+        }
+
+        function updateUnitButtons() {
+            unitBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.unit === state.unit) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Screenshot
+        function takeScreenshot() {
+            html2canvas(document.getElementById('canvas-container')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `kaarigar-${new Date().toISOString()}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Menu button
+            menuBtn.addEventListener('click', () => {
+                sidePanel.classList.toggle('open');
+            });
+
+            // New project button
+            newProjectBtn.addEventListener('click', () => {
+                homeScreen.classList.toggle('hidden');
+            });
+
+            // Tool buttons
+            toolBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectTool(btn.dataset.tool);
+                });
+            });
+
+            // Color options
+            colorOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    colorOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectColor(option.dataset.color);
+                });
+            });
+
+            // Unit buttons
+            unitBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectUnit(btn.dataset.unit);
+                });
+            });
+
+            // Context menu items
+            document.querySelectorAll('.context-menu-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    handleContextMenuAction(item.dataset.action);
+                });
+            });
+
+            // Canvas interactions
+            state.renderer.domElement.addEventListener('click', handleObjectSelection);
+            state.renderer.domElement.addEventListener('dblclick', handleObjectSelection);
+            document.addEventListener('click', hideContextMenu);
+
+            // File operations
+            document.querySelector('[data-tool="save"]').addEventListener('click', saveProject);
+            document.querySelector('[data-tool="export"]').addEventListener('click', takeScreenshot);
+        }
+
+        // Initialize App
+        function init() {
+            initScene();
+            
+            // Load saved unit preference
+            const savedUnit = localStorage.getItem('kaarigarUnit');
+            if (savedUnit) {
+                state.unit = savedUnit;
+            }
+            
+            // Load saved projects
+            const savedProjects = localStorage.getItem('kaarigarProjects');
+            if (savedProjects) {
+                state.projects = JSON.parse(savedProjects);
+            }
+            
+            updateProjectsList();
+            updateUnitButtons();
+            setupEventListeners();
+            
+            // Start with home screen visible
+            homeScreen.classList.remove('hidden');
+        }
+
+        // Start the app
+        init();
+    </script>
 </body>
 </html>
