@@ -1,1 +1,0 @@
-// Placeholder content for background_service.dart
