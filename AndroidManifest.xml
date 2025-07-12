@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.boycott_alert">
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <application
+        android:name="io.flutter.app.FlutterApplication"
+        android:label="Boycott Alert"
+        android:icon="@mipmap/ic_launcher">
+        <service
+            android:name="com.shadowings.flutter_background_service_android.FlutterBackgroundService"
+            android:enabled="true"
+            android:exported="false" />
+    </application>
+</manifest>

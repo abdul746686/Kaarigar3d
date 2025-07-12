@@ -1,0 +1,16 @@
+workflows:
+  boycott-alert:
+    name: Boycott Alert
+    environment:
+      groups:
+        - keystore
+      vars:
+        CM_KEYSTORE_PATH: /tmp/keystore.keystore
+        CM_KEY_ALIAS: $CM_KEY_ALIAS
+        CM_KEY_PASSWORD: $CM_KEY_PASSWORD
+        CM_STORE_PASSWORD: $CM_STORE_PASSWORD
+    scripts:
+      - flutter pub get
+      - flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
