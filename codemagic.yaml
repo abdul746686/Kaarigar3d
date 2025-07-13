@@ -1,0 +1,9 @@
+workflows:
+  android:
+    name: Boycott Alert Kotlin
+    environment:
+      android: true
+    scripts:
+      - ./gradlew assembleRelease
+    artifacts:
+      - app/build/outputs/apk/release/app-release.apk

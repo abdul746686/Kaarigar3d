@@ -1,0 +1,2 @@
+rootProject.name = "BoycottAlert"
+include ':app'
