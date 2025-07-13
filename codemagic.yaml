@@ -1,10 +1,14 @@
 workflows:
   build_boycott_alert:
     name: Build Boycott Alert
+    max_build_duration: 60
     environment:
       vars:
-        JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+        JAVA_VERSION: 11
+      android: true
     scripts:
+      - echo "Running Gradle..."
+      - ./gradlew clean
       - ./gradlew assembleRelease
     artifacts:
-      - app/build/outputs/apk/release/app-release.apk
+      - app/build/outputs/**/*.apk
