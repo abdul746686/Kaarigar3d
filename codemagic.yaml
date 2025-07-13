@@ -1,6 +1,6 @@
 workflows:
   android:
-    name: Boycott Alert Kotlin
+    name: Boycott Alert Java
     environment:
       android: true
     scripts:
