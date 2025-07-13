@@ -1,12 +1,10 @@
 workflows:
-  android-app:
+  build_boycott_alert:
     name: Build Boycott Alert
-    max_build_duration: 15
     environment:
       vars:
-        JAVA_HOME: /opt/android-sdk/linux
+        JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
     scripts:
-      - name: Build APK
-        script: ./gradlew assembleRelease
+      - ./gradlew assembleRelease
     artifacts:
       - app/build/outputs/apk/release/app-release.apk
